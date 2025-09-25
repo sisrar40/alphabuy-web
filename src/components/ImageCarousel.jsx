@@ -1,16 +1,47 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 
 const ImageCarousel = ({ images }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [direction, setDirection] = useState("forward");
 
   const prevSlide = () => {
     setCurrentIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+    setDirection("backward");
   };
 
   const nextSlide = () => {
     setCurrentIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+    setDirection("forward");
   };
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentIndex((prevIndex) => {
+        let newIndex;
+
+        if (direction === "forward") {
+          if (prevIndex === images.length - 1) {
+            setDirection("backward");
+            newIndex = prevIndex - 1;
+          } else {
+            newIndex = prevIndex + 1;
+          }
+        } else {
+          if (prevIndex === 0) {
+            setDirection("forward");
+            newIndex = prevIndex + 1;
+          } else {
+            newIndex = prevIndex - 1;
+          }
+        }
+
+        return newIndex;
+      });
+    }, 5000);
+
+    return () => clearInterval(interval); // Cleanup
+  }, [direction, images.length]);
 
   return (
     <div className="relative w-full max-w-7xl mx-auto mt-6">
@@ -29,21 +60,27 @@ const ImageCarousel = ({ images }) => {
           ))}
         </div>
       </div>
+
+      {/* Left arrow */}
       <button
         onClick={prevSlide}
-        className="absolute top-1/2 left-4 transform -translate-y-1/2 bg-gray-800 bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-75 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="absolute cursor-pointer top-1/2 left-4 transform -translate-y-1/2 bg-gray-800 bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-75 focus:outline-none focus:ring-2 focus:ring-blue-500"
         aria-label="Previous slide"
       >
         <FaChevronLeft />
       </button>
+
+      {/* Right arrow */}
       <button
         onClick={nextSlide}
-        className="absolute top-1/2 right-4 transform -translate-y-1/2 bg-gray-800 bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-75 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="absolute cursor-pointer top-1/2 right-4 transform -translate-y-1/2 bg-gray-800 bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-75 focus:outline-none focus:ring-2 focus:ring-blue-500"
         aria-label="Next slide"
       >
         <FaChevronRight />
       </button>
-      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
+
+      {/* Dots */}
+      <div className="absolute bottom-4 cursor-pointer left-1/2 transform -translate-x-1/2 flex space-x-2">
         {images.map((_, index) => (
           <button
             key={index}

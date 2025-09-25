@@ -168,3 +168,11 @@ export const ladiesCategories = [
     slug: "fragrances",
   },
 ];
+
+export const entertainmentPosterData = [
+  "https://www.shirdi.wetnjoy.in/wp-content/uploads/2023/06/Wnj-shirdi-website-banner-2-1.jpg",
+  "https://pbs.twimg.com/media/FGJQmbtVQAcF2p0.jpg",
+  "https://images.all-free-download.com/images/thumbjpg/banner_90a_house_and_garage_music_template_dynamic_silhouette_6929855.jpg",
+  "https://st3.depositphotos.com/1026931/19498/v/450/depositphotos_194983496-stock-illustration-amusement-park-landscape-banner.jpg",
+  "https://previews.123rf.com/images/hamzaali01/hamzaali011705/hamzaali01170500493/78587917-entertainment-letters-vector-word-banner-sign.jpg",
+];

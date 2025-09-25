@@ -6,20 +6,17 @@ const Header = () => {
 
   const handleSearch = () => {
     console.log("Searching for:", searchQuery);
-    // Add search logic here
   };
 
   return (
-    <header className="w-full bg-white shadow-md px-4 py-3">
+    <header className="sticky top-0 z-50 w-full bg-white shadow-md px-4 py-3">
       <div className="max-w-7xl mx-auto">
-        {/* Web View: Single row / Mobile View: First row (Logo + Icons) */}
         <div className="flex items-center justify-between md:flex-row md:gap-4">
           {/* Logo */}
           <div className="text-2xl font-bold text-gray-800 shrink-0">
             MyLogo
           </div>
 
-          {/* Search Bar: Second row in mobile, center in desktop */}
           <div className="hidden md:flex md:flex-1 md:max-w-lg md:mx-4">
             <div className="flex w-full">
               <input
@@ -40,7 +37,6 @@ const Header = () => {
             </div>
           </div>
 
-          {/* Icons */}
           <div className="flex items-center space-x-4 text-gray-600 text-xl shrink-0">
             <button
               className="hover:text-red-500 relative group"
@@ -72,7 +68,6 @@ const Header = () => {
           </div>
         </div>
 
-        {/* Search Bar: Mobile view second row */}
         <div className="mt-3 md:hidden">
           <div className="flex w-full">
             <input
