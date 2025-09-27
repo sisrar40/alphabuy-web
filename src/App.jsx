@@ -4,6 +4,8 @@ import Landing from "./pages/Landing";
 import Entertainment from "./pages/Entertainment";
 import Details from "./pages/Details";
 import NotFound from "./pages/NotFound";
+import ThemeParkBooking from "./pages/ThemeParkBooking";
+import CartPage from "./pages/CartPage";
 
 function App() {
   return (
@@ -13,6 +15,8 @@ function App() {
         <Route path="/" element={<Landing />} />
         <Route path="/entertainment" element={<Entertainment />} />
         <Route path="/detail/:id" element={<Details />} />
+        <Route path="/booking" element={<ThemeParkBooking />} />
+        <Route path="/cart" element={<CartPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Router>

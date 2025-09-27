@@ -1,4 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
+import { FaPlay, FaHeart, FaShare } from "react-icons/fa";
+import Button from "./Button";
 
 function MoviePreview({
   title,
@@ -14,46 +16,84 @@ function MoviePreview({
   releaseDate,
   formatTags,
 }) {
+  const [isFavorite, setIsFavorite] = useState(false);
+
+  // const Button = ({ children, onClick, variant = "primary" }) => (
+  //   <button
+  //     onClick={onClick}
+  //     className={`py-3 px-6 rounded-xl font-medium transition-all duration-200 flex items-center justify-center gap-2 border-none outline-none ${
+  //       variant === "primary"
+  //         ? "bg-gradient-to-r from-[#08453E] to-[#1C9789] text-white hover:opacity-90"
+  //         : "border border-[#1C9789] text-[#1C9789] hover:bg-[#1C9789] hover:text-white"
+  //     }`}
+  //   >
+  //     {children}
+  //   </button>
+  // );
+
   return (
-    <div className="bg-gradient-to-r  from-black via-gray-800 to-black text-white overflow-hidden shadow-lg flex flex-col lg:flex-row p-4 gap-6">
-      <div className="lg:w-72 w-full h-72 relative">
+    <div className="bg-gradient-to-r from-gray-900/80 to-gray-800/80 backdrop-blur-sm text-white overflow-hidden shadow-2xl rounded-2xl flex flex-col lg:flex-row p-6 gap-6 border border-gray-700/50">
+      {/* Poster Section */}
+      <div className="lg:w-72 w-full h-72 relative flex-shrink-0">
         <img
           src={posterUrl}
           alt={title}
-          className="rounded-xl w-72 h-72 object-cover cursor-pointer"
+          className="rounded-xl w-full h-full object-cover cursor-pointer shadow-lg"
         />
 
         {trailerLabel && (
-          <button className="absolute inset-0 flex cursor-pointer items-center justify-center  bg-opacity-40 hover:bg-opacity-60 transition-all text-white text-sm font-medium rounded-xl">
-            ▶ {trailerLabel}
+          <button className="absolute inset-0 flex cursor-pointer items-center justify-center bg-black/40 hover:bg-black/60 transition-all text-white text-sm font-medium rounded-xl">
+            <FaPlay className="mr-2" />
+            {trailerLabel}
           </button>
         )}
 
         {releaseDate && (
-          <p className="absolute bottom-2 left-1/2 -translate-x-1/2 cursor-pointer transform bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded">
+          <p className="absolute bottom-3 left-1/2 -translate-x-1/2 transform bg-black/80 text-white text-xs px-3 py-2 rounded-lg backdrop-blur-sm">
             Releasing on {releaseDate}
           </p>
         )}
       </div>
 
-      <div className="lg:w-2/3 flex flex-col  gap-4">
-        <h2 className="text-3xl font-bold">{title}</h2>
-
-        {isInterested && (
-          <div className="flex items-center gap-2 border border-gray-600 rounded-lg px-3 py-2 w-fit">
-            <span className="text-green-400">👍</span>
-            <p className="text-sm">{interestCount} are interested</p>
-            <button className="ml-auto text-black bg-white text-sm rounded px-3 py-1">
-              I'm interested
+      {/* Content Section */}
+      <div className="lg:w-2/3 flex flex-col gap-4">
+        {/* Title and Actions */}
+        <div className="flex justify-between items-start">
+          <h2 className="text-3xl font-bold text-white">{title}</h2>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setIsFavorite(!isFavorite)}
+              className={`p-2 rounded-full transition-all duration-200 ${
+                isFavorite
+                  ? "bg-red-500 text-white"
+                  : "bg-gray-700/50 text-gray-300 hover:bg-gray-600"
+              }`}
+            >
+              <FaHeart className={isFavorite ? "fill-current" : ""} />
             </button>
+            <button className="p-2 bg-gray-700/50 text-gray-300 rounded-full hover:bg-gray-600 transition-all duration-200">
+              <FaShare />
+            </button>
+          </div>
+        </div>
+
+        {/* Interest Section */}
+        {isInterested && (
+          <div className="flex items-center gap-3 border border-gray-600 rounded-xl px-4 py-3 w-fit bg-gray-800/30 backdrop-blur-sm">
+            <span className="text-green-400 text-lg">👍</span>
+            <p className="text-sm text-gray-300">
+              {interestCount} are interested
+            </p>
+            <Button variant="secondary">I'm interested</Button>
           </div>
         )}
 
+        {/* Tags Section */}
         <div className="flex flex-wrap gap-2">
           {formatTags?.map((format, index) => (
             <span
               key={index}
-              className="px-2 py-1 text-sm bg-white text-black rounded"
+              className="px-3 py-1 text-sm bg-gradient-to-r from-[#08453E] to-[#1C9789] text-white rounded-lg font-medium"
             >
               {format}
             </span>
@@ -61,33 +101,35 @@ function MoviePreview({
           {languages?.map((lang, index) => (
             <span
               key={index}
-              className="px-2 py-1 text-sm border border-white rounded"
+              className="px-3 py-1 text-sm border border-gray-600 text-gray-300 rounded-lg bg-gray-800/50"
             >
               {lang}
             </span>
           ))}
         </div>
 
-        <p className="text-sm text-gray-300">
+        {/* Meta Information */}
+        <p className="text-sm text-gray-400">
           {duration} • {genres.join(", ")} • UA13+
         </p>
 
         {/* Rating */}
         {rating && (
-          <div className="flex items-center gap-2 bg-gray-800 rounded-lg px-3 py-2 w-fit">
-            <span className="text-pink-500 text-lg">★</span>
-            <p className="text-white text-sm">
-              {rating.score}/10 ({rating.votes} Votes)
-            </p>
-            <button className="ml-auto text-pink-500 text-sm">Rate now</button>
+          <div className="flex items-center gap-3 bg-gray-800/50 backdrop-blur-sm rounded-xl px-4 py-3 w-fit border border-gray-700">
+            <span className="text-yellow-400 text-xl">★</span>
+            <div>
+              <p className="text-white font-semibold">{rating.score}/10</p>
+              <p className="text-gray-400 text-xs">({rating.votes} Votes)</p>
+            </div>
+            <Button variant="secondary">Rate now</Button>
           </div>
         )}
 
         {/* Book Tickets Button */}
         {isInCinemas && (
-          <button className="mt-4 w-fit px-6 py-2 bg-pink-500 hover:bg-pink-600 text-white text-lg font-semibold rounded-lg cursor-pointer">
-            Book tickets
-          </button>
+          <div className="mt-2">
+            <Button>Book tickets</Button>
+          </div>
         )}
       </div>
     </div>
