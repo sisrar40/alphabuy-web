@@ -11,11 +11,13 @@ import {
   FaChevronUp,
   FaArrowRight,
 } from "react-icons/fa";
+import { useAppNavigation } from "../hooks/useAppNavigation";
 
 function Details() {
   const [activeTab, setActiveTab] = useState("description");
   const [isFavorite, setIsFavorite] = useState(false);
   const [expandedFaq, setExpandedFaq] = useState(null);
+  const { navigateTo } = useAppNavigation();
 
   const productDetails = {
     title: "Premium PlayStation 5 Console with VR Bundle",
@@ -278,7 +280,9 @@ Perfect for gamers looking for the ultimate entertainment experience. The consol
                       {productDetails.period}
                     </span>
                   </div>
-                  <Button>Book now</Button>
+                  <Button onClick={() => navigateTo("/booking")}>
+                    Book now
+                  </Button>
                 </div>
               </div>
 
@@ -319,7 +323,9 @@ Perfect for gamers looking for the ultimate entertainment experience. The consol
                       {productDetails.period}
                     </span>
                   </div>
-                  <Button>Book now</Button>
+                  <Button onClick={() => navigateTo("/booking")}>
+                    Book now
+                  </Button>
                 </div>
               </div>
             </div>
@@ -489,7 +495,9 @@ Perfect for gamers looking for the ultimate entertainment experience. The consol
 
                 <div className="space-y-3 pt-4">
                   <Button> Add to Cart</Button>
-                  <Button>Book now</Button>
+                  <Button onClick={() => navigateTo("/booking")}>
+                    Book now
+                  </Button>
                 </div>
 
                 <div className="flex items-center gap-2 text-sm text-gray-400 mt-4">

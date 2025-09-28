@@ -101,3 +101,7 @@ html {
     background-attachment: fixed;
   }
 }
+
+body.modal-open {
+  overflow: hidden;
+}

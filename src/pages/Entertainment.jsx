@@ -11,6 +11,7 @@ import {
 import ImageCarousel from "../components/ImageCarousel";
 import { entertainmentPosterData } from "../dummy/data";
 import Button from "../components/Button";
+import { useAppNavigation } from "../hooks/useAppNavigation";
 
 function Entertainment() {
   const [showMobileFilter, setShowMobileFilter] = useState(false);
@@ -18,6 +19,7 @@ function Entertainment() {
   const [location, setLocation] = useState("");
   const [appliedFilters, setAppliedFilters] = useState(null);
   const [favorites, setFavorites] = useState(new Set());
+  const { navigateTo } = useAppNavigation();
 
   const handleApplyFilter = () => {
     setAppliedFilters({ category, location });
@@ -32,6 +34,7 @@ function Entertainment() {
 
   const handleBookNow = (parkName) => {
     console.log(`Booking: ${parkName}`);
+    navigateTo(`/detail/${parkName}`);
   };
 
   const toggleFavorite = (index) => {

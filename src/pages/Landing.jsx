@@ -13,11 +13,13 @@ import {
   FaCopy,
 } from "react-icons/fa";
 import Button from "../components/Button";
+import { useAppNavigation } from "../hooks/useAppNavigation";
 
 function Landing() {
   const [activeImage, setActiveImage] = useState(0);
   const [isFavorite, setIsFavorite] = useState(false);
   const [copiedCode, setCopiedCode] = useState(null);
+  const { navigateTo } = useAppNavigation();
 
   const handleCategoryClick = (slug) => {
     console.log("Category clicked:", slug);
@@ -76,6 +78,7 @@ function Landing() {
           {/* Left Column - Gallery & Map */}
           <div className="lg:col-span-2 space-y-6">
             {/* Venue Header */}
+            <ImageCarousel images={images} />
             <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50">
               <div className="flex justify-between items-start mb-4">
                 <div>
@@ -224,13 +227,16 @@ function Landing() {
                 Quick Actions
               </h3>
               <div className="space-y-3">
-                <button className="w-full py-3 bg-gradient-to-r from-[#08453E] to-[#1C9789] text-white rounded-lg font-semibold hover:opacity-90 transition-all duration-200">
+                <button className="w-full cursor-pointer py-3 bg-gradient-to-r from-[#08453E] to-[#1C9789] text-white rounded-lg font-semibold hover:opacity-90 transition-all duration-200">
                   Book Tickets
                 </button>
-                <button className="w-full py-3 border border-[#1C9789] text-[#1C9789] rounded-lg font-semibold hover:bg-[#1C9789] hover:text-white transition-all duration-200">
+                <button
+                  onClick={() => navigateTo("/entertainment")}
+                  className="w-full cursor-pointer py-3 border border-[#1C9789] text-[#1C9789] rounded-lg font-semibold hover:bg-[#1C9789] hover:text-white transition-all duration-200"
+                >
                   View Packages
                 </button>
-                <button className="w-full py-3 border border-gray-600 text-gray-300 rounded-lg font-semibold hover:border-[#1C9789] hover:text-[#1C9789] transition-all duration-200">
+                <button className="w-full cursor-pointer py-3 border border-gray-600 text-gray-300 rounded-lg font-semibold hover:border-[#1C9789] hover:text-[#1C9789] transition-all duration-200">
                   Contact Venue
                 </button>
               </div>
