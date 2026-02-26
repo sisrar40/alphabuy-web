@@ -1,18 +1,19 @@
 import React, { useState } from "react";
 import ImageCarousel from "../components/ImageCarousel";
-import { dummyProductData, images, ladiesCategories } from "../dummy/data";
-import Product from "../components/Product";
+import { images, ladiesCategories } from "../dummy/data";
 import Categories from "../components/Category";
 import MoviePreview from "../components/MoviePreview";
 import {
   FaMapMarkerAlt,
-  FaStar,
   FaHeart,
   FaShare,
   FaDirections,
   FaCopy,
+  FaCheck,
+  FaCloudSun,
+  FaTrophy,
 } from "react-icons/fa";
-import Button from "../components/Button";
+import Button from "../components/ui/Button";
 import { useAppNavigation } from "../hooks/useAppNavigation";
 
 function Landing() {
@@ -27,13 +28,13 @@ function Landing() {
 
   const venueData = {
     title: "Indie & Longway Water Park",
-    subtitle: "at nJoy Water Park + Amusement Park",
+    subtitle: "Premier Family Splash Adventure • nJoy Destination",
     distance: "0.39 km",
-    status: "Demanded",
+    status: "Highly Demanded",
     price: "₹1,296.82",
-    priceNote: "from official site",
-    rating: 4.4,
-    reviews: "42,096 reviews",
+    priceNote: "Exclusive Member Rate",
+    rating: 4.8,
+    reviews: "42k+ Happy Families",
     location: "Magic Mountain, Home march, Sunny Da Dhaba",
     images: [
       "https://www.shirdi.wetnjoy.in/wp-content/uploads/2023/06/Wnj-shirdi-website-banner-2-1.jpg",
@@ -44,316 +45,239 @@ function Landing() {
   };
 
   const weatherData = [
-    { day: "Sat", temp: "24°" },
-    { day: "Sun", temp: "23°" },
-    { day: "Mon", temp: "24°" },
+    { day: "SAT", temp: "24°", status: "Sunny" },
+    { day: "SUN", temp: "23°", status: "Breezy" },
+    { day: "MON", temp: "24°", status: "Clear" },
   ];
 
   const couponCodes = [
     {
-      code: "YOURFIRST10",
-      description: "Get upto 10% off on your first rental.",
+      code: "AQUAFIRST10",
+      description: "Unlock a 10% splash discount on your first family booking.",
       discount: "10% OFF",
     },
     {
-      code: "WELCOME20",
-      description: "Get 20% off on your first order.",
+      code: "SPLASH20",
+      description: "Join the VIP wave—20% off for all season pass holders.",
       discount: "20% OFF",
     },
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black">
-      {/* Categories Section */}
-      <div className="bg-gradient-to-r from-gray-900 to-gray-800 border-b border-gray-700">
-        <Categories
-          categories={ladiesCategories}
-          onCategoryClick={handleCategoryClick}
-        />
-      </div>
+    <div className="bg-primary min-h-screen pb-32">
+      {/* Search/Category Hub */}
+      <Categories
+        categories={ladiesCategories}
+        onCategoryClick={handleCategoryClick}
+      />
 
-      {/* Main Content Grid */}
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column - Gallery & Map */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Venue Header */}
-            <ImageCarousel images={images} />
-            <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50">
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <h1 className="text-3xl font-bold text-white">
+      <div className="max-w-7xl mx-auto px-6 mt-12">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+          {/* Main Adventure Content */}
+          <div className="lg:col-span-8 space-y-12">
+            {/* Hero Adventure Carousel */}
+            <div className="hover:shadow-premium transition-standard rounded-[40px] overflow-hidden">
+               <ImageCarousel images={images} />
+            </div>
+
+            {/* Venue Intelligence Card */}
+            <div className="bg-white rounded-[40px] p-10 shadow-soft border border-gray-50 relative overflow-hidden group">
+               <div className="absolute top-0 right-0 w-32 h-32 bg-aqua-50/50 rounded-full -mr-16 -mt-16 blur-2xl group-hover:bg-aqua-100 transition-colors"></div>
+               
+               <div className="flex flex-col md:flex-row justify-between items-start gap-8 relative z-10">
+                <div className="space-y-4">
+                   <div className="flex items-center gap-2">
+                      <span className="bg-aqua-50 text-aqua-600 text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1 rounded-lg flex items-center gap-2">
+                        <FaTrophy className="text-xs" /> {venueData.status}
+                      </span>
+                      <span className="text-gray-300">•</span>
+                      <span className="text-xs font-bold text-gray-400">{venueData.reviews}</span>
+                   </div>
+                   <h1 className="text-4xl lg:text-5xl font-black text-gray-900 tracking-tight font-display">
                     {venueData.title}
-                  </h1>
-                  <p className="text-gray-400 mt-1">{venueData.subtitle}</p>
+                   </h1>
+                   <p className="text-gray-400 font-bold uppercase text-[10px] tracking-[0.3em]">{venueData.subtitle}</p>
                 </div>
-                <div className="flex gap-2">
+
+                <div className="flex gap-3">
                   <button
                     onClick={() => setIsFavorite(!isFavorite)}
-                    className={`p-2 rounded-full transition-all duration-200 ${
+                    className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-standard ${
                       isFavorite
-                        ? "bg-red-500 text-white"
-                        : "bg-gray-700/50 text-gray-300 hover:bg-gray-600"
+                        ? "bg-red-500 text-white shadow-lg shadow-red-500/20"
+                        : "bg-gray-50 text-gray-400 hover:text-red-500 hover:bg-red-50"
                     }`}
                   >
                     <FaHeart className={isFavorite ? "fill-current" : ""} />
                   </button>
-                  <button className="p-2 bg-gray-700/50 text-gray-300 rounded-full hover:bg-gray-600 transition-all duration-200">
+                  <button className="w-14 h-14 bg-gray-50 text-gray-400 rounded-2xl flex items-center justify-center hover:text-aqua-600 hover:bg-aqua-50 transition-standard">
                     <FaShare />
                   </button>
                 </div>
               </div>
 
-              <div className="flex items-center gap-4 text-sm text-gray-300 mb-4">
-                <div className="flex items-center gap-1 bg-green-500/20 text-green-400 px-3 py-1 rounded-full">
-                  <FaMapMarkerAlt className="w-3 h-3" />
-                  <span>{venueData.distance}</span>
-                  <span className="ml-2">{venueData.status}</span>
-                </div>
-                <span>{venueData.location}</span>
-              </div>
-
-              {/* Price & Weather Row */}
-              <div className="flex flex-wrap gap-6 items-center justify-between">
-                <div className="bg-gradient-to-r from-[#08453E] to-[#1C9789] text-white px-4 py-3 rounded-lg">
-                  <div className="text-2xl font-bold">{venueData.price}</div>
-                  <div className="text-sm opacity-90">
-                    {venueData.priceNote}
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-4">
-                  {weatherData.map((weather, index) => (
-                    <div key={index} className="text-center">
-                      <div className="text-gray-300 text-sm">{weather.day}</div>
-                      <div className="text-white font-semibold">
-                        {weather.temp}
-                      </div>
+              <div className="mt-10 flex flex-wrap items-center gap-8 py-8 border-y border-gray-50">
+                 <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center text-aqua-600 shadow-inner">
+                      <FaMapMarkerAlt />
                     </div>
-                  ))}
-                  <div className="text-xs text-gray-400">Google Weather</div>
-                </div>
+                    <div>
+                      <p className="text-sm font-black text-gray-900 leading-none mb-1">{venueData.distance}</p>
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none truncate max-w-[200px]">{venueData.location}</p>
+                    </div>
+                 </div>
+
+                 <div className="h-10 w-[1px] bg-gray-100 hidden md:block"></div>
+
+                 <div className="flex-1 flex justify-between items-center min-w-[300px]">
+                    <div className="flex items-center gap-6">
+                      {weatherData.map((weather, index) => (
+                        <div key={index} className="flex flex-col items-center">
+                          <span className="text-[9px] font-black text-gray-300 uppercase tracking-widest mb-1">{weather.day}</span>
+                          <span className="text-lg font-black text-gray-700">{weather.temp}</span>
+                          <FaCloudSun className="text-aqua-400 text-xs mt-1" />
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="bg-aqua-gradient p-0.5 rounded-[24px] shadow-lg shadow-aqua-500/20">
+                       <div className="bg-white rounded-[22px] px-8 py-4 flex items-center gap-4">
+                          <div className="text-right">
+                             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">{venueData.priceNote}</p>
+                             <p className="text-2xl font-black text-gray-900 tracking-tighter">{venueData.price}</p>
+                          </div>
+                       </div>
+                    </div>
+                 </div>
               </div>
             </div>
 
-            {/* Image Gallery */}
-            <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50">
-              <div className="flex gap-4 mb-4">
-                <div className="w-2/3">
-                  <img
-                    src={venueData.images[activeImage]}
-                    alt="Main venue"
-                    className="w-full h-64 object-cover rounded-lg"
-                  />
-                </div>
-                <div className="w-1/3 grid grid-cols-2 gap-2">
-                  {venueData.images.slice(0, 4).map((image, index) => (
+            {/* Immersive Gallery Section */}
+            <div className="bg-white rounded-[40px] p-8 shadow-soft border border-gray-50">
+               <div className="flex items-center justify-between mb-8">
+                  <h3 className="text-2xl font-black text-gray-900 tracking-tight font-display">Visual Journey</h3>
+                  <button className="text-[10px] font-black text-aqua-600 uppercase tracking-widest hover:underline">View All 42 Photos</button>
+               </div>
+               
+               <div className="grid grid-cols-12 gap-6 h-[500px]">
+                  <div className="col-span-8 overflow-hidden rounded-[32px] group">
                     <img
-                      key={index}
-                      src={image}
-                      alt={`Thumbnail ${index + 1}`}
-                      className={`w-full h-16 object-cover rounded cursor-pointer transition-all duration-200 ${
-                        activeImage === index
-                          ? "ring-2 ring-[#1C9789]"
-                          : "opacity-70 hover:opacity-100"
-                      }`}
-                      onClick={() => setActiveImage(index)}
+                      src={venueData.images[activeImage]}
+                      alt="Primary Experience"
+                      className="w-full h-full object-cover transition-all duration-1000 group-hover:scale-110"
                     />
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Map Section */}
-            <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50">
-              <h3 className="text-xl font-bold text-white mb-4">Location</h3>
-              <div className="bg-gray-700/30 rounded-lg h-64 flex items-center justify-center relative">
-                {/* Mock Map */}
-                <div className="text-center text-gray-400">
-                  <FaMapMarkerAlt className="w-12 h-12 mx-auto mb-2 text-[#1C9789]" />
-                  <p className="text-lg font-semibold text-white">
-                    {venueData.title}
-                  </p>
-                  <p className="text-sm">{venueData.location}</p>
-                  <button className="mt-3 flex items-center gap-2 bg-[#1C9789] text-white px-4 py-2 rounded-lg hover:bg-[#08453E] transition-all duration-200">
-                    <FaDirections />
-                    Get Directions
-                  </button>
-                </div>
-                <div className="absolute bottom-2 right-2 text-xs text-gray-500">
-                  Map data ©2025 • Terms
-                </div>
-              </div>
-            </div>
-
-            {/* Reviews Section */}
-            <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50">
-              <h3 className="text-xl font-bold text-white mb-4">Reviews</h3>
-              <div className="flex items-center gap-4">
-                <div className="text-center">
-                  <div className="text-4xl font-bold text-white">
-                    {venueData.rating}
                   </div>
-                  <div className="flex items-center gap-1 text-yellow-400">
-                    {[...Array(5)].map((_, i) => (
-                      <FaStar
-                        key={i}
-                        className={
-                          i < Math.floor(venueData.rating)
-                            ? "fill-current"
-                            : "text-gray-600"
-                        }
-                      />
+                  <div className="col-span-4 grid grid-rows-4 gap-4">
+                    {venueData.images.map((image, index) => (
+                      <div 
+                        key={index}
+                        onClick={() => setActiveImage(index)}
+                        className={`relative cursor-pointer rounded-2xl overflow-hidden group transition-standard ${
+                          activeImage === index ? "ring-4 ring-aqua-500 ring-offset-4" : "opacity-60 grayscale hover:opacity-100 hover:grayscale-0"
+                        }`}
+                      >
+                        <img src={image} className="w-full h-full object-cover group-hover:scale-125 transition-all duration-700" alt="Thumbnail" />
+                        {activeImage === index && (
+                           <div className="absolute inset-0 bg-aqua-500/20 backdrop-blur-[2px]"></div>
+                        )}
+                      </div>
                     ))}
                   </div>
-                  <div className="text-gray-400 text-sm mt-1">
-                    {venueData.reviews}
+               </div>
+            </div>
+
+            {/* Smart Map Card */}
+            <div className="bg-white rounded-[40px] p-4 shadow-soft border border-gray-50 overflow-hidden group">
+              <div className="bg-gray-50 rounded-[32px] h-80 flex items-center justify-center relative overflow-hidden">
+                {/* Visual Map Texture (Mock) */}
+                <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] grayscale"></div>
+                
+                <div className="relative text-center z-10 transition-standard group-hover:scale-105">
+                  <div className="w-20 h-20 bg-aqua-gradient rounded-3xl flex items-center justify-center text-white text-3xl mx-auto mb-6 shadow-xl shadow-aqua-500/30">
+                    <FaMapMarkerAlt />
                   </div>
+                  <p className="text-2xl font-black text-gray-900 tracking-tight mb-2">
+                    {venueData.title}
+                  </p>
+                  <p className="text-gray-400 font-bold text-xs uppercase tracking-widest max-w-[280px] mx-auto">{venueData.location}</p>
+                  <button className="mt-8 aqua-btn px-10 py-4 flex items-center gap-3 mx-auto">
+                    <FaDirections />
+                    Launch Navigator
+                  </button>
                 </div>
-                <div className="flex-1">
-                  <Button className="w-full py-3 bg-gradient-to-r from-[#08453E] to-[#1C9789] text-white rounded-lg font-semibold hover:opacity-90 transition-all duration-200">
-                    Write a Review
+              </div>
+            </div>
+          </div>
+
+          {/* Right Action Sidebar */}
+          <div className="lg:col-span-4 space-y-8">
+            {/* Quick Access Portal */}
+            <div className="bg-white rounded-[40px] p-10 shadow-premium border border-gray-50 sticky top-32">
+              <div className="flex flex-col gap-8">
+                <div className="space-y-2">
+                  <h3 className="text-2xl font-black text-gray-900 tracking-tight font-display">
+                    Fast Booking
+                  </h3>
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Secure your family adventure in seconds</p>
+                </div>
+                
+                <div className="space-y-4">
+                  <Button 
+                    variant="primary"
+                    className="w-full !py-5 text-lg !rounded-2xl"
+                    onClick={() => navigateTo("/booking")}
+                  >
+                    Quick Reserve
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="w-full !py-4 !rounded-2xl border-2 border-aqua-50 focus:ring-0"
+                    onClick={() => navigateTo("/entertainment")}
+                  >
+                    Explore Packages
                   </Button>
                 </div>
-              </div>
-            </div>
-          </div>
 
-          {/* Right Column - Products & Content */}
-          <div className="lg:col-span-1 space-y-6">
-            {/* Quick Actions */}
-            <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50 sticky top-4 z-10">
-              <h3 className="text-lg font-bold text-white mb-4">
-                Quick Actions
-              </h3>
-              <div className="space-y-3">
-                <button className="w-full cursor-pointer py-3 bg-gradient-to-r from-[#08453E] to-[#1C9789] text-white rounded-lg font-semibold hover:opacity-90 transition-all duration-200">
-                  Book Tickets
-                </button>
-                <button
-                  onClick={() => navigateTo("/entertainment")}
-                  className="w-full cursor-pointer py-3 border border-[#1C9789] text-[#1C9789] rounded-lg font-semibold hover:bg-[#1C9789] hover:text-white transition-all duration-200"
-                >
-                  View Packages
-                </button>
-                <button className="w-full cursor-pointer py-3 border border-gray-600 text-gray-300 rounded-lg font-semibold hover:border-[#1C9789] hover:text-[#1C9789] transition-all duration-200">
-                  Contact Venue
-                </button>
-              </div>
-            </div>
-
-            {/* Latest Products */}
-            <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50">
-              <h3 className="text-lg font-bold text-white mb-4">
-                Similar Venues
-              </h3>
-              <div className="space-y-4">
-                {dummyProductData.slice(0, 3).map((product) => (
-                  <div
-                    key={product.id}
-                    className="flex items-center gap-3 bg-gray-700/30 rounded-lg p-3 hover:bg-gray-700/50 transition-all duration-200"
-                  >
-                    <img
-                      src={product.thumbnail}
-                      alt={product.title}
-                      className="w-16 h-16 object-cover rounded"
-                    />
-                    <div className="flex-1">
-                      <h4 className="text-sm font-semibold text-white line-clamp-1">
-                        {product.title}
-                      </h4>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-[#1C9789] font-bold">
-                          ₹{product.price}
-                        </span>
-                        <span className="text-gray-400 text-xs">per day</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Weather Widget */}
-            <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50">
-              <h3 className="text-lg font-bold text-white mb-4">
-                Weather Forecast
-              </h3>
-              <div className="grid grid-cols-3 gap-2">
-                {weatherData.map((weather, index) => (
-                  <div
-                    key={index}
-                    className="text-center p-3 bg-gray-700/30 rounded-lg"
-                  >
-                    <div className="text-gray-300 text-sm">{weather.day}</div>
-                    <div className="text-white font-bold text-lg">
-                      {weather.temp}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-gradient-to-r from-[#08453E] rounded-xl mt-8 to-[#1C9789] text-white py-8">
-          <div className="max-w-7xl mx-auto px-4">
-            <div className="text-center mb-6">
-              <h1 className="text-4xl font-bold mb-2">10% OFF</h1>
-              <p className="text-lg opacity-90">
-                Use code on your first booking
-              </p>
-            </div>
-
-            {/* Coupon Codes */}
-            <div className="grid md:grid-cols-2 gap-4 max-w-2xl mx-auto">
-              {couponCodes.map((coupon, index) => (
-                <div
-                  key={index}
-                  className="bg-black/20 rounded-xl p-4 backdrop-blur-sm"
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-2xl font-bold">
-                      {coupon.discount}
-                    </span>
-                    <button
-                      onClick={() => copyToClipboard(coupon.code, coupon.code)}
-                      className="flex items-center gap-2 bg-white/20 px-3 py-1 rounded-lg hover:bg-white/30 transition-all duration-200"
-                    >
-                      {copiedCode === coupon.code ? (
-                        <>
-                          <FaCheck className="text-green-400" />
-                          <span>Copied!</span>
-                        </>
-                      ) : (
-                        <>
-                          <FaCopy />
-                          <span>Copy Code</span>
-                        </>
-                      )}
-                    </button>
-                  </div>
-                  <div className="mb-2">
-                    <div className="font-mono text-lg font-bold">
-                      {coupon.code}
-                    </div>
-                    <p className="text-sm opacity-90">{coupon.description}</p>
-                  </div>
-                  <p className="text-xs opacity-75">
-                    Stay connected for community updates, support, and other
-                    benefits
-                  </p>
+                <div className="pt-8 border-t border-gray-50 space-y-6">
+                   <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest text-center">Exclusive Splash Deals</p>
+                   <div className="space-y-4">
+                      {couponCodes.map((coupon, index) => (
+                        <div key={index} className="bg-primary/50 group border border-gray-100 rounded-2xl p-5 hover:bg-aqua-50/50 hover:border-aqua-100 transition-standard">
+                           <div className="flex items-center justify-between mb-2">
+                              <span className="text-lg font-black text-aqua-600">{coupon.discount}</span>
+                              <button 
+                                onClick={() => {
+                                  navigator.clipboard.writeText(coupon.code);
+                                  setCopiedCode(coupon.code);
+                                  setTimeout(() => setCopiedCode(null), 2000);
+                                }}
+                                className="text-gray-300 hover:text-aqua-500 transition-colors"
+                              >
+                                {copiedCode === coupon.code ? <FaCheck /> : <FaCopy />}
+                              </button>
+                           </div>
+                           <p className="text-[10px] font-black text-gray-900 bg-white inline-block px-3 py-1 rounded-lg border border-gray-100 mb-3 uppercase tracking-widest shadow-sm">{coupon.code}</p>
+                           <p className="text-[10px] font-bold text-gray-400 leading-relaxed uppercase tracking-widest">{coupon.description}</p>
+                        </div>
+                      ))}
+                   </div>
                 </div>
-              ))}
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Additional Sections Below */}
-        <div className="mt-8">
-          <h2 className="text-2xl font-bold text-white mb-6">
-            Featured Entertainment
-          </h2>
+        {/* High Fidelity Featured Section */}
+        <div className="mt-32 space-y-12">
+          <div className="flex items-end justify-between">
+            <div className="space-y-4">
+              <span className="bg-aqua-50 text-aqua-600 text-[10px] font-black uppercase tracking-[0.2em] px-4 py-1.5 rounded-full">Coming Attraction</span>
+              <h2 className="text-4xl lg:text-5xl font-black text-gray-900 tracking-tight font-display">
+                Featured Entertainment
+              </h2>
+            </div>
+            <Button variant="ghost" className="!rounded-full px-8">View Master List</Button>
+          </div>
 
           <MoviePreview
             title="Demon Slayer: Infinity Castle"
@@ -365,14 +289,7 @@ function Landing() {
             duration="2h 35m"
             genres={["Action", "Adventure", "Anime"]}
             languages={["Japanese", "English", "+3"]}
-            formatTags={[
-              "2D",
-              "ICE",
-              "4DX",
-              "DOLBY CINEMA 2D",
-              "MX4D",
-              "IMAX 2D",
-            ]}
+            formatTags={["2D", "ICE", "4DX", "DOLBY CINEMA 2D", "MX4D", "IMAX 2D"]}
             rating={{ score: 9.5, votes: "99.3K" }}
             releaseDate="12 Sep, 2025"
           />

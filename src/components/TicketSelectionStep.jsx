@@ -65,131 +65,135 @@ const TicketSelectionStep = ({
   }, 0);
 
   return (
-    <div className="bg-gray-800/30 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-white">Select Tickets</h2>
+    <div className="bg-white rounded-[40px] p-8 md:p-12 border border-gray-50 shadow-soft">
+      <div className="flex items-center justify-between mb-12">
+        <div>
+          <p className="text-[10px] font-black text-aqua-500 uppercase tracking-widest mb-2">Step 2 of 4</p>
+          <h2 className="text-4xl font-black text-gray-900 tracking-tight font-display">Select Tickets</h2>
+        </div>
         <button
           onClick={prevStep}
-          className="flex items-center text-blue-400 hover:text-blue-300"
+          className="flex items-center gap-2 text-gray-400 hover:text-aqua-600 font-black text-xs uppercase tracking-widest bg-gray-50 border border-gray-100 px-5 py-3 rounded-2xl transition-standard hover:border-aqua-100"
         >
-          <FaArrowLeft className="mr-2" />
+          <FaArrowLeft className="text-xs" />
           Change Date
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 cursor-pointer">
-        {ticketTypes.map((ticket) => (
-          <div
-            key={ticket.id}
-            className={`border-2 rounded-lg p-4 bg-gray-700/30 backdrop-blur-sm ${
-              ticket.popular
-                ? "border-green-400 ring-2 ring-yellow-200/20"
-                : "border-gray-600"
-            }`}
-          >
-            {ticket.popular && (
-              <div className="bg-yellow-400 text-yellow-900 text-xs font-bold px-2 py-1 rounded-full inline-block mb-3">
-                MOST POPULAR
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+        {ticketTypes.map((ticket) => {
+          const qty = getTicketQuantity(ticket.id);
+          const isActive = qty > 0;
+          return (
+            <div
+              key={ticket.id}
+              className={`border-2 rounded-[32px] p-8 bg-white transition-standard relative overflow-hidden ${
+                isActive
+                  ? "border-aqua-400 shadow-premium ring-2 ring-aqua-500/10"
+                  : ticket.popular
+                  ? "border-aqua-200 shadow-soft"
+                  : "border-gray-100 shadow-soft hover:border-aqua-100"
+              }`}
+            >
+              {ticket.popular && (
+                <div className="absolute top-0 right-0 bg-aqua-gradient text-white text-[9px] font-black uppercase tracking-[0.2em] px-5 py-2 rounded-bl-[24px] shadow-lg">
+                  Popular
+                </div>
+              )}
+
+              <h3 className="font-black text-xl text-gray-900 mb-1 font-display">{ticket.name}</h3>
+              <p className="text-gray-400 font-bold text-xs uppercase tracking-widest mb-6">{ticket.description}</p>
+
+              <div className="flex items-baseline gap-2 mb-6">
+                <span className="text-4xl font-black text-gray-900 tracking-tighter">₹{ticket.price}</span>
+                <span className="text-xs font-bold text-gray-300 line-through">₹{ticket.originalPrice}</span>
               </div>
-            )}
 
-            <h3 className="font-bold text-lg text-white">{ticket.name}</h3>
-            <p className="text-gray-300 text-sm mb-3">{ticket.description}</p>
+              <ul className="space-y-3 mb-8">
+                {ticket.features.map((feature, index) => (
+                  <li key={index} className="flex items-center gap-3">
+                    <div className="w-5 h-5 bg-aqua-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <FaCheck className="text-aqua-600 text-[8px]" />
+                    </div>
+                    <span className="text-xs font-black text-gray-600 uppercase tracking-widest">{feature}</span>
+                  </li>
+                ))}
+              </ul>
 
-            <div className="flex items-baseline mb-3">
-              <span className="text-2xl font-bold text-green-400">
-                ₹{ticket.price}
-              </span>
-              <span className="text-sm text-gray-400 line-through ml-2">
-                ₹{ticket.originalPrice}
-              </span>
-            </div>
-
-            <ul className="text-sm text-gray-300 space-y-1 mb-4">
-              {ticket.features.map((feature, index) => (
-                <li key={index} className="flex items-center">
-                  <FaCheck className="text-green-500 mr-2 text-xs" />
-                  {feature}
-                </li>
-              ))}
-            </ul>
-
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-300">Quantity:</span>
-              <div className="flex items-center space-x-3">
-                <button
-                  onClick={() =>
-                    updateTicketQuantity(
-                      ticket.id,
-                      getTicketQuantity(ticket.id) - 1
-                    )
-                  }
-                  disabled={getTicketQuantity(ticket.id) === 0}
-                  className="w-8 h-8 rounded-full border border-gray-400 flex items-center justify-center disabled:opacity-50 text-white bg-gray-600"
-                >
-                  -
-                </button>
-                <span className="font-semibold text-white">
-                  {getTicketQuantity(ticket.id)}
-                </span>
-                <button
-                  onClick={() =>
-                    updateTicketQuantity(
-                      ticket.id,
-                      getTicketQuantity(ticket.id) + 1
-                    )
-                  }
-                  className="w-8 h-8 rounded-full border border-gray-400 flex items-center justify-center text-white bg-gray-600"
-                >
-                  +
-                </button>
+              <div className="flex items-center justify-between pt-6 border-t border-gray-50">
+                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Qty</span>
+                <div className="flex items-center gap-4 bg-gray-50 border border-gray-100 rounded-2xl p-2">
+                  <button
+                    onClick={() => updateTicketQuantity(ticket.id, qty - 1)}
+                    disabled={qty === 0}
+                    className="w-10 h-10 rounded-xl flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white hover:shadow-soft text-gray-700 font-black text-xl transition-standard"
+                  >
+                    −
+                  </button>
+                  <span className="font-black text-gray-900 text-lg w-5 text-center">{qty}</span>
+                  <button
+                    onClick={() => updateTicketQuantity(ticket.id, qty + 1)}
+                    className="w-10 h-10 rounded-xl flex items-center justify-center hover:bg-aqua-50 hover:text-aqua-600 hover:shadow-soft text-gray-400 font-black text-xl transition-standard"
+                  >
+                    +
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Order Summary */}
-      <div className="bg-gray-700/50 rounded-lg p-4 mb-6">
-        <h3 className="font-semibold text-white mb-3">Order Summary</h3>
-        <div className="space-y-2">
-          {tickets.map((ticket) => {
-            const ticketType = ticketTypes.find((t) => t.id === ticket.id);
-            return ticketType ? (
-              <div
-                key={ticket.id}
-                className="flex justify-between text-sm text-gray-300"
-              >
-                <span>
-                  {ticketType.name} × {ticket.quantity}
-                </span>
-                <span className="text-white">
-                  ₹{ticketType.price * ticket.quantity}
-                </span>
-              </div>
-            ) : null;
-          })}
-        </div>
-        <div className="border-t border-gray-600 mt-3 pt-3 flex justify-between font-semibold text-white">
-          <span>Total</span>
-          <span>₹{totalAmount}</span>
+      <div className="bg-gray-50/50 border border-gray-100 rounded-[32px] p-8 mb-10">
+        <h3 className="font-black text-lg text-gray-900 mb-6 flex items-center gap-3">
+          <span className="w-8 h-8 bg-aqua-50 rounded-xl flex items-center justify-center text-aqua-600 text-sm">🧾</span>
+          Order Summary
+        </h3>
+        {tickets.length > 0 ? (
+          <div className="space-y-4">
+            {tickets.map((ticket) => {
+              const ticketType = ticketTypes.find((t) => t.id === ticket.id);
+              return ticketType ? (
+                <div key={ticket.id} className="flex justify-between items-center py-3 border-b border-gray-100">
+                  <span className="flex items-center gap-3 text-sm font-black text-gray-700">
+                    <span className="bg-aqua-50 text-aqua-700 text-xs font-black px-2.5 py-1 rounded-lg border border-aqua-100">{ticket.quantity}×</span>
+                    {ticketType.name}
+                  </span>
+                  <span className="text-sm font-black text-gray-900">₹{ticketType.price * ticket.quantity}</span>
+                </div>
+              ) : null;
+            })}
+          </div>
+        ) : (
+          <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest italic text-center py-6 border border-dashed border-gray-100 rounded-2xl">
+            No tickets added yet
+          </p>
+        )}
+        <div className="mt-6 pt-6 border-t-2 border-dashed border-gray-100 flex justify-between items-center">
+          <span className="text-sm font-black text-gray-400 uppercase tracking-widest">Total</span>
+          <span className="text-3xl font-black text-aqua-600 tracking-tighter">₹{totalAmount}</span>
         </div>
       </div>
 
-      <div className="flex space-x-4">
+      <div className="flex gap-4">
         <button
           onClick={prevStep}
-          className="flex-1 border border-gray-400 text-gray-300 py-3 rounded-lg font-semibold hover:bg-gray-700/50 transition duration-300"
+          className="flex-1 bg-white border border-gray-100 text-gray-400 py-5 rounded-[20px] font-black text-xs uppercase tracking-widest hover:border-gray-200 hover:text-gray-600 transition-standard shadow-soft"
         >
           Back
         </button>
         <button
           onClick={nextStep}
           disabled={tickets.length === 0}
-          className="flex-1 bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed transition duration-300 flex items-center justify-center"
+          className={`flex-[2] py-5 rounded-[20px] font-black text-sm uppercase tracking-widest flex items-center justify-center gap-3 transition-standard ${
+            tickets.length > 0
+              ? "bg-aqua-gradient text-white shadow-premium hover:shadow-xl hover:scale-[1.01]"
+              : "bg-gray-100 text-gray-300 cursor-not-allowed"
+          }`}
         >
-          Continue to Meals
-          <FaArrowRight className="ml-2" />
+          Choose Meals
+          <FaArrowRight />
         </button>
       </div>
     </div>

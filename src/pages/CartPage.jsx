@@ -140,18 +140,18 @@ const CartPage = () => {
 
   if (cartItems.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black pt-20">
+      <div className="min-h-screen bg-[var(--bg-color)] pt-20 transition-colors duration-300">
         <div className="container mx-auto px-4 py-8">
           <div className="max-w-4xl mx-auto">
-            <div className="bg-gray-800/30 backdrop-blur-sm rounded-2xl p-8 border border-gray-700/50 text-center">
-              <div className="w-24 h-24 mx-auto mb-6 bg-gray-700/50 rounded-full flex items-center justify-center">
+            <div className="bg-[var(--card-bg)] backdrop-blur-sm rounded-3xl p-10 border border-[var(--border-color)] text-center shadow-xl">
+              <div className="w-24 h-24 mx-auto mb-8 bg-gray-100 dark:bg-gray-800/50 rounded-full flex items-center justify-center">
                 <FaShoppingCart className="text-4xl text-gray-400" />
               </div>
-              <h2 className="text-2xl font-bold text-white mb-4">
+              <h2 className="text-3xl font-bold text-[var(--text-color)] mb-4">
                 Your Cart is Empty
               </h2>
-              <p className="text-gray-400 mb-6">
-                Looks like you haven't added any items to your cart yet.
+              <p className="text-[var(--text-color)] opacity-70 mb-8 max-w-md mx-auto">
+                Looks like you haven't added any items to your cart yet. Discover great experiences and add them here!
               </p>
               <Button>Start Booking Tickets</Button>
             </div>
@@ -162,15 +162,15 @@ const CartPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black">
+    <div className="min-h-screen bg-[var(--bg-color)] transition-colors duration-300">
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
           {/* Header */}
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center space-x-4">
-              <h3 className="text-3xl font-bold text-white">Shopping Cart</h3>
+              <h3 className="text-3xl font-bold text-[var(--text-color)] tracking-tight">Shopping Cart</h3>
             </div>
-            <div className="flex items-center space-x-2 text-gray-400">
+            <div className="flex items-center space-x-2 text-[var(--text-color)] opacity-70 font-medium">
               <FaShoppingCart />
               <span>
                 {cartItems.reduce((total, item) => total + item.quantity, 0)}{" "}
@@ -182,28 +182,28 @@ const CartPage = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Cart Items */}
             <div className="lg:col-span-2">
-              <div className="bg-gray-800/30 backdrop-blur-sm rounded-2xl border border-gray-700/50 overflow-hidden">
+              <div className="bg-[var(--card-bg)] shadow-md rounded-2xl border border-[var(--border-color)] overflow-hidden transition-colors duration-300">
                 {/* Cart Header */}
-                <div className="bg-gray-700/50 px-6 py-4 border-b border-gray-600/50">
-                  <h2 className="text-xl font-semibold text-white">
+                <div className="bg-gray-50 dark:bg-gray-800/50 px-6 py-5 border-b border-[var(--border-color)]">
+                  <h2 className="text-xl font-bold text-[var(--text-color)]">
                     Your Booking Items
                   </h2>
-                  <p className="text-gray-400 text-sm">
+                  <p className="text-[var(--text-color)] opacity-60 text-sm mt-1">
                     Review and manage your selected items
                   </p>
                 </div>
 
                 {/* Cart Items List */}
-                <div className="divide-y divide-gray-700/50">
+                <div className="divide-y divide-[var(--border-color)]">
                   {cartItems.map((item) => (
                     <div
                       key={item.id}
-                      className="p-6 hover:bg-gray-700/20 transition-colors"
+                      className="p-6 hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors"
                     >
-                      <div className="flex items-start space-x-4">
+                      <div className="flex items-start space-x-5">
                         {/* Item Icon */}
                         <div
-                          className={`w-12 h-12 rounded-lg flex items-center justify-center ${getTypeColor(
+                          className={`w-14 h-14 rounded-xl flex items-center justify-center shadow-sm ${getTypeColor(
                             item.type
                           )}`}
                         >
@@ -214,16 +214,16 @@ const CartPage = () => {
                         <div className="flex-1">
                           <div className="flex items-start justify-between mb-2">
                             <div>
-                              <h3 className="font-semibold text-white text-lg">
+                              <h3 className="font-bold text-[var(--text-color)] text-lg">
                                 {item.name}
                               </h3>
-                              <p className="text-gray-400 text-sm">
+                              <p className="text-[var(--text-color)] opacity-70 text-sm font-medium">
                                 {item.description}
                               </p>
                             </div>
                             <button
                               onClick={() => removeItem(item.id)}
-                              className="text-red-400 hover:text-red-300 transition-colors p-2"
+                              className="text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 bg-red-50 dark:bg-red-500/10 rounded-lg p-2 transition-colors cursor-pointer"
                               aria-label="Remove item"
                             >
                               <FaTrash />
@@ -231,28 +231,28 @@ const CartPage = () => {
                           </div>
 
                           {/* Date and Features */}
-                          <div className="flex items-center space-x-4 mb-3">
-                            <div className="flex items-center text-sm text-gray-400">
-                              <FaCalendarAlt className="mr-2" />
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
+                            <div className="flex items-center text-sm font-semibold text-[var(--text-color)] opacity-80 bg-[var(--input-bg)] px-3 py-1.5 rounded-lg border border-[var(--border-color)] w-fit">
+                              <FaCalendarAlt className="mr-2 text-blue-500" />
                               {new Date(item.date).toLocaleDateString("en-US", {
                                 weekday: "short",
                                 month: "short",
                                 day: "numeric",
                               })}
                             </div>
-                            <div className="flex flex-wrap gap-1">
+                            <div className="flex flex-wrap gap-2">
                               {item.features
                                 .slice(0, 2)
                                 .map((feature, index) => (
                                   <span
                                     key={index}
-                                    className="px-2 py-1 bg-gray-700/50 rounded text-xs text-gray-300"
+                                    className="px-2.5 py-1 bg-[var(--input-bg)] border border-[var(--border-color)] rounded-lg text-xs font-semibold text-[var(--text-color)] opacity-70"
                                   >
                                     {feature}
                                   </span>
                                 ))}
                               {item.features.length > 2 && (
-                                <span className="px-2 py-1 bg-gray-700/50 rounded text-xs text-gray-300">
+                                <span className="px-2.5 py-1 bg-[var(--input-bg)] border border-[var(--border-color)] rounded-lg text-xs font-semibold text-[var(--text-color)] opacity-70">
                                   +{item.features.length - 2} more
                                 </span>
                               )}
@@ -261,23 +261,23 @@ const CartPage = () => {
 
                           {/* Quantity and Price */}
                           <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-3">
+                            <div className="flex items-center space-x-3 bg-[var(--input-bg)] border border-[var(--border-color)] rounded-xl p-1 shadow-sm">
                               <button
                                 onClick={() =>
                                   updateQuantity(item.id, item.quantity - 1)
                                 }
-                                className="w-8 h-8 rounded-full border border-gray-600 flex items-center justify-center text-gray-400 hover:text-white hover:border-gray-500 transition-colors"
+                                className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--text-color)] hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors cursor-pointer"
                               >
                                 <FaMinus className="text-xs" />
                               </button>
-                              <span className="font-semibold text-white w-8 text-center">
+                              <span className="font-bold text-[var(--text-color)] w-8 text-center">
                                 {item.quantity}
                               </span>
                               <button
                                 onClick={() =>
                                   updateQuantity(item.id, item.quantity + 1)
                                 }
-                                className="w-8 h-8 rounded-full border border-gray-600 flex items-center justify-center text-gray-400 hover:text-white hover:border-gray-500 transition-colors"
+                                className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--text-color)] hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors cursor-pointer"
                               >
                                 <FaPlus className="text-xs" />
                               </button>
@@ -285,16 +285,16 @@ const CartPage = () => {
 
                             <div className="text-right">
                               <div className="flex items-baseline space-x-2">
-                                <span className="text-xl font-bold text-green-400">
+                                <span className="text-2xl font-black text-green-600 dark:text-green-400">
                                   ₹{item.price * item.quantity}
                                 </span>
                                 {item.originalPrice > item.price && (
-                                  <span className="text-sm text-gray-400 line-through">
+                                  <span className="text-sm font-semibold text-[var(--text-color)] opacity-40 line-through">
                                     ₹{item.originalPrice * item.quantity}
                                   </span>
                                 )}
                               </div>
-                              <div className="text-sm text-gray-400">
+                              <div className="text-sm font-medium text-[var(--text-color)] opacity-60">
                                 ₹{item.price} each
                               </div>
                             </div>
@@ -307,31 +307,31 @@ const CartPage = () => {
               </div>
 
               {/* Promo Code Section */}
-              <div className="bg-gray-800/30 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50 mt-6">
-                <h3 className="font-semibold text-white mb-4">
-                  Apply Promo Code
+              <div className="bg-[var(--card-bg)] shadow-md border border-[var(--border-color)] rounded-2xl p-6 md:p-8 mt-6 transition-colors duration-300">
+                <h3 className="font-bold text-lg text-[var(--text-color)] mb-4 flex items-center gap-2">
+                   🏷️ Apply Promo Code
                 </h3>
-                <div className="flex space-x-4">
+                <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4">
                   <input
                     type="text"
                     placeholder="Enter promo code"
                     value={promoCode}
                     onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
-                    className="flex-1 px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
+                    className="flex-1 px-4 py-3 bg-[var(--input-bg)] border border-[var(--border-color)] rounded-xl text-[var(--text-color)] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 uppercase font-semibold tracking-wide shadow-inner"
                   />
                   <button
                     onClick={applyPromoCode}
-                    className="px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg font-semibold hover:from-purple-700 hover:to-purple-800 transition-all duration-300"
+                    className="px-8 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-xl font-bold tracking-wide hover:from-purple-700 hover:to-purple-800 transition-all duration-300 shadow-md shadow-purple-600/20"
                   >
                     Apply
                   </button>
                 </div>
                 {appliedPromo && (
                   <div
-                    className={`mt-3 p-3 rounded-lg ${
+                    className={`mt-4 p-4 rounded-xl font-medium border ${
                       appliedPromo.discount > 0
-                        ? "bg-green-500/20 text-green-400"
-                        : "bg-red-500/20 text-red-400"
+                        ? "bg-green-50 dark:bg-green-500/10 border-green-200 dark:border-green-500/30 text-green-700 dark:text-green-400"
+                        : "bg-red-50 dark:bg-red-500/10 border-red-200 dark:border-red-500/30 text-red-700 dark:text-red-400"
                     }`}
                   >
                     {appliedPromo.message}
@@ -342,93 +342,94 @@ const CartPage = () => {
 
             {/* Order Summary */}
             <div className="lg:col-span-1">
-              <div className="bg-gray-800/30 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50 sticky top-24">
-                <h3 className="text-xl font-semibold text-white mb-6">
+              <div className="bg-[var(--card-bg)] shadow-lg rounded-2xl p-6 md:p-8 border border-[var(--border-color)] sticky top-24 transition-colors duration-300">
+                <h3 className="text-2xl font-bold text-[var(--text-color)] mb-6 border-b border-[var(--border-color)] pb-4">
                   Order Summary
                 </h3>
 
                 {/* Booking Details */}
-                <div className="bg-gray-700/50 rounded-lg p-4 mb-6">
-                  <h4 className="font-semibold text-white mb-3">
+                <div className="bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-800/50 rounded-xl p-5 mb-6">
+                  <h4 className="font-bold text-blue-800 dark:text-blue-300 mb-4 text-sm uppercase tracking-wider">
                     Booking Details
                   </h4>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex items-center text-gray-300">
-                      <FaCalendarAlt className="mr-3 text-blue-400" />
+                  <div className="space-y-3 text-sm font-medium text-blue-900 dark:text-blue-200 opacity-90">
+                    <div className="flex items-center">
+                      <FaCalendarAlt className="mr-3 text-blue-500 text-lg" />
                       <span>
                         Visit Date:{" "}
                         {new Date(cartItems[0].date).toLocaleDateString()}
                       </span>
                     </div>
-                    <div className="flex items-center text-gray-300">
-                      <FaClock className="mr-3 text-green-400" />
+                    <div className="flex items-center">
+                      <FaClock className="mr-3 text-blue-500 text-lg" />
                       <span>Park Hours: 10:00 AM - 8:00 PM</span>
                     </div>
-                    <div className="flex items-center text-gray-300">
-                      <FaMapMarkerAlt className="mr-3 text-red-400" />
+                    <div className="flex items-center">
+                      <FaMapMarkerAlt className="mr-3 text-blue-500 text-lg" />
                       <span>Adventure City Theme Park</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Price Breakdown */}
-                <div className="space-y-3 mb-6">
-                  <div className="flex justify-between text-gray-300">
-                    <span>Subtotal</span>
-                    <span>₹{subtotal}</span>
+                <div className="space-y-4 mb-6 px-2">
+                  <div className="flex justify-between text-[var(--text-color)] font-medium">
+                    <span className="opacity-70">Subtotal</span>
+                    <span className="font-bold border-b border-dashed border-[var(--border-color)]">₹{subtotal}</span>
                   </div>
 
                   {appliedPromo && appliedPromo.discount > 0 && (
-                    <div className="flex justify-between text-green-400">
+                    <div className="flex justify-between text-green-600 dark:text-green-400 font-bold">
                       <span>Discount ({appliedPromo.discount}%)</span>
                       <span>-₹{discount}</span>
                     </div>
                   )}
 
-                  <div className="flex justify-between text-gray-300">
-                    <span>Tax (18%)</span>
-                    <span>₹{tax.toFixed(2)}</span>
+                  <div className="flex justify-between text-[var(--text-color)] font-medium">
+                    <span className="opacity-70">Tax (18%)</span>
+                    <span className="font-bold border-b border-dashed border-[var(--border-color)]">₹{tax.toFixed(2)}</span>
                   </div>
 
-                  <div className="border-t border-gray-600 pt-3 flex justify-between text-lg font-semibold text-white">
-                    <span>Total Amount</span>
-                    <span>₹{total.toFixed(2)}</span>
+                  <div className="border-t-2 border-dashed border-[var(--border-color)] pt-4 mt-2 flex justify-between items-center">
+                    <span className="text-lg font-bold text-[var(--text-color)]">Total Amount</span>
+                    <span className="text-3xl font-black text-[var(--text-color)] tracking-tight">₹{total.toFixed(2)}</span>
                   </div>
                 </div>
 
                 {/* Savings */}
-                <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-3 mb-6">
-                  <div className="flex justify-between text-green-400 text-sm">
-                    <span>You Save</span>
-                    <span>
-                      ₹
-                      {(
-                        cartItems.reduce(
-                          (total, item) =>
-                            total +
-                            (item.originalPrice - item.price) * item.quantity,
-                          0
-                        ) + discount
-                      ).toFixed(2)}
-                    </span>
-                  </div>
+                <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800/50 rounded-xl p-4 mb-8 flex justify-between items-center shadow-inner">
+                  <span className="text-green-800 dark:text-green-300 font-bold text-sm">You Save</span>
+                  <span className="text-green-600 dark:text-green-400 font-black text-lg">
+                    ₹
+                    {(
+                      cartItems.reduce(
+                        (total, item) =>
+                          total +
+                          (item.originalPrice - item.price) * item.quantity,
+                        0
+                      ) + discount
+                    ).toFixed(2)}
+                  </span>
                 </div>
 
                 {/* Action Buttons */}
-                <div className="space-y-3">
-                  <Button className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-blue-800 transition-all duration-300">
+                <div className="space-y-4">
+                  <Button className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-4 rounded-xl font-bold text-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-lg shadow-blue-600/20">
                     Proceed to Checkout
                   </Button>
-                  <button className="w-full border border-gray-600 text-gray-300 py-3 rounded-lg font-semibold hover:bg-gray-700/50 transition-all duration-300">
+                  <button className="w-full bg-[var(--input-bg)] border border-[var(--border-color)] text-[var(--text-color)] py-4 rounded-xl font-bold hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-300 shadow-sm cursor-pointer">
                     Continue Shopping
                   </button>
                 </div>
 
                 {/* Security Badge */}
-                <div className="text-center mt-6 pt-6 border-t border-gray-600/50">
-                  <div className="flex items-center justify-center space-x-2 text-gray-400 text-sm">
-                    <FaCreditCard className="text-green-400" />
-                    <span>Secure Payment • 256-bit SSL Encrypted</span>
+                <div className="text-center mt-8 pt-6 border-t border-[var(--border-color)]">
+                  <div className="flex flex-col items-center justify-center text-[var(--text-color)] opacity-60 text-xs font-semibold space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <FaCreditCard className="text-green-500 text-lg" />
+                      <span>Secure Payment</span>
+                    </div>
+                    <span>256-bit SSL Encrypted Transaction</span>
                   </div>
                 </div>
               </div>

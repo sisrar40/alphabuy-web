@@ -65,7 +65,7 @@ const Product = ({
   if (variant === "minimal") {
     return (
       <div
-        className="bg-gray-800/50 backdrop-blur-sm rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-700/50"
+        className="bg-[var(--card-bg)] backdrop-blur-sm rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-[var(--border-color)] overflow-hidden"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
@@ -73,38 +73,37 @@ const Product = ({
           <img
             src={thumbnail}
             alt={title}
-            className="w-full h-40 object-cover rounded-t-xl"
+            className="w-full h-44 object-cover"
           />
           {hasDiscount && (
-            <span className="absolute top-2 left-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full shadow-md font-medium">
-              -{Math.round(discountPercentage)}%
+            <span className="absolute top-3 left-3 bg-red-500 text-white text-[10px] px-2 py-1 rounded-lg shadow-lg font-black uppercase tracking-wider">
+              {Math.round(discountPercentage)}% OFF
             </span>
           )}
           {showQuickActions && <QuickActions />}
         </div>
 
-        <div className="p-4">
-          <h3 className="text-sm font-semibold text-white mb-1 line-clamp-1">
+        <div className="p-5">
+          <h3 className="text-base font-bold text-[var(--text-color)] mb-1 line-clamp-1">
             {title}
           </h3>
-          <p className="text-xs text-gray-400 mb-2">{brand}</p>
+          <p className="text-xs text-gray-500 mb-3 font-medium uppercase tracking-wide">{brand}</p>
 
-          {/* Price Section */}
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <span className="text-lg font-bold text-white">
-                ₹{price.toFixed(2)}
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-baseline gap-2">
+              <span className="text-xl font-black text-green-600">
+                ₹{price.toFixed(0)}
               </span>
               {hasDiscount && (
-                <span className="text-sm text-gray-400 line-through">
-                  ₹{discountedPrice.toFixed(2)}
+                <span className="text-xs text-gray-400 line-through font-medium">
+                  ₹{discountedPrice.toFixed(0)}
                 </span>
               )}
             </div>
-            <span className="text-xs text-gray-500">per day</span>
+            <span className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">Per Day</span>
           </div>
 
-          <Button onClick={handleAddToCart}>Rent Now</Button>
+          <Button onClick={handleAddToCart} className="py-2.5 text-sm">Rent Now</Button>
         </div>
       </div>
     );

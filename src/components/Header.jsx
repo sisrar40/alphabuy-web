@@ -12,6 +12,7 @@ import {
   FaCheck,
 } from "react-icons/fa";
 import { useAppNavigation } from "../hooks/useAppNavigation";
+import Button from "./ui/Button";
 
 const Header = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -25,579 +26,220 @@ const Header = () => {
   const [activeOtpIndex, setActiveOtpIndex] = useState(0);
   const { navigateTo } = useAppNavigation();
 
-  // Sample search suggestions
   const searchSuggestions = [
     "Theme Park Tickets",
     "Water Park Passes",
     "Family Packages",
     "Season Pass",
     "VIP Experiences",
-    "Group Discounts",
     "Fast Track Passes",
   ];
 
   useEffect(() => {
     const handleScroll = () => {
-      const scrollTop = window.scrollY;
-      if (scrollTop > 50) {
-        setIsScrolled(true);
-      } else {
-        setIsScrolled(false);
-      }
+      setIsScrolled(window.scrollY > 20);
     };
-
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-
-  const handleSearch = () => {
-    if (searchQuery.trim()) {
-      console.log("Searching for:", searchQuery);
-      const searchBtn = document.querySelector(".search-btn");
-      if (searchBtn) {
-        searchBtn.classList.add("searching");
-        setTimeout(() => {
-          searchBtn.classList.remove("searching");
-        }, 1000);
-      }
-    }
-  };
-
-  const handleKeyPress = (e) => {
-    if (e.key === "Enter") {
-      handleSearch();
-    }
-  };
 
   const clearSearch = () => {
     setSearchQuery("");
     setShowSearchSuggestions(false);
   };
 
-  const handleSuggestionClick = (suggestion) => {
-    setSearchQuery(suggestion);
-    setShowSearchSuggestions(false);
-    handleSearch();
-  };
-
-  // OTP input handling
   const handleOtpChange = (e, index) => {
     const value = e.target.value;
     if (/^[0-9]$/.test(value)) {
       const newOtp = [...otp];
       newOtp[index] = value;
       setOtp(newOtp);
-
       if (index < 5) {
-        setActiveOtpIndex(index + 1);
         document.getElementById(`otp-${index + 1}`)?.focus();
       }
     }
   };
 
-  const handleOtpKeyDown = (e, index) => {
-    if (e.key === "Backspace" && !otp[index] && index > 0) {
-      setActiveOtpIndex(index - 1);
-      document.getElementById(`otp-${index - 1}`)?.focus();
-    }
-  };
-
-  const handleSendOtp = () => {
-    if (phoneNumber.length === 10) {
-      setOtpSent(true);
-      // Simulate OTP sending
-      console.log("OTP sent to:", phoneNumber);
-    }
-  };
-
-  const handleVerifyOtp = () => {
-    const enteredOtp = otp.join("");
-    if (enteredOtp.length === 6) {
-      // Simulate OTP verification
-      console.log("OTP verified:", enteredOtp);
-      setShowLoginModal(false);
-      // Reset form
-      setPhoneNumber("");
-      setOtp(["", "", "", "", "", ""]);
-      setOtpSent(false);
-    }
-  };
-
-  const handleOtpPaste = (e) => {
-    e.preventDefault();
-    const pasteData = e.clipboardData.getData("text").slice(0, 6);
-    if (/^\d+$/.test(pasteData)) {
-      const newOtp = pasteData
-        .split("")
-        .concat(Array(6 - pasteData.length).fill(""));
-      setOtp(newOtp);
-      setActiveOtpIndex(Math.min(pasteData.length, 5));
-    }
-  };
-
-  useEffect(() => {
-    if (showLoginModal) {
-      document.body.classList.add("modal-open");
-    } else {
-      document.body.classList.remove("modal-open");
-    }
-
-    return () => {
-      document.body.classList.remove("modal-open");
-    };
-  }, [showLoginModal]);
-
   return (
     <>
-      <style jsx>{`
-        @keyframes pulse-glow {
-          0% {
-            box-shadow: 0 0 5px rgba(34, 197, 94, 0.5);
-          }
-          50% {
-            box-shadow: 0 0 20px rgba(34, 197, 94, 0.8);
-          }
-          100% {
-            box-shadow: 0 0 5px rgba(34, 197, 94, 0.5);
-          }
-        }
-
-        @keyframes search-spin {
-          0% {
-            transform: rotate(0deg);
-          }
-          100% {
-            transform: rotate(360deg);
-          }
-        }
-
-        @keyframes slide-in {
-          from {
-            transform: translateX(-10px);
-            opacity: 0;
-          }
-          to {
-            transform: translateX(0);
-            opacity: 1;
-          }
-        }
-
-        @keyframes modal-appear {
-          from {
-            transform: scale(0.9);
-            opacity: 0;
-          }
-          to {
-            transform: scale(1);
-            opacity: 1;
-          }
-        }
-
-        .search-input:focus {
-          animation: pulse-glow 2s infinite;
-        }
-
-        .search-btn.searching {
-          animation: search-spin 1s ease-in-out;
-        }
-
-        .suggestion-item {
-          animation: slide-in 0.3s ease-out;
-        }
-
-        .search-container {
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .search-container.expanded {
-          transform: scale(1.02);
-        }
-
-        .glass-effect {
-          backdrop-filter: blur(10px);
-          background: rgba(255, 255, 255, 0.1);
-        }
-
-        .modal-overlay {
-          animation: modal-appear 0.3s ease-out;
-        }
-
-        .otp-input:focus {
-          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
-        }
-      `}</style>
-
       <header
-        className={`sticky top-0 z-50 w-full shadow-md px-4 py-3 text-white transition-all duration-300 ${
+        className={`sticky top-0 z-50 w-full transition-standard ${
           isScrolled
-            ? "bg-black/80 backdrop-blur-md glass-effect"
-            : "bg-gradient-to-r from-gray-900 via-gray-800 to-black"
+            ? "bg-white/90 backdrop-blur-md shadow-soft py-3"
+            : "bg-white py-5"
         }`}
       >
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between md:flex-row md:gap-4">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="flex items-center justify-between gap-8">
+            {/* Logo */}
             <div
               onClick={() => navigateTo("/")}
-              className="text-2xl cursor-pointer font-bold shrink-0 bg-gradient-to-r from-green-400 to-blue-500 bg-clip-text text-transparent"
+              className="text-3xl cursor-pointer font-black font-display bg-gradient-to-r from-cyan-500 to-blue-600 bg-clip-text text-transparent flex items-center gap-2 group"
             >
-              Alphabuy
+              <div className="w-10 h-10 bg-aqua-500 rounded-xl flex items-center justify-center text-white text-xl shadow-lg shadow-aqua-500/20 group-hover:rotate-12 transition-standard">
+                A
+              </div>
+              <span className="tracking-tighter">Alphabuy</span>
             </div>
 
-            {/* Desktop Search */}
-            <div className="hidden md:flex md:flex-1 md:max-w-lg md:mx-4">
-              <div
-                className={`search-container w-full relative transition-all duration-300 ${
-                  isSearchFocused ? "expanded" : ""
-                }`}
-              >
-                <div className="flex w-full relative">
-                  <input
-                    type="text"
-                    placeholder="Search attractions, tickets..."
-                    value={searchQuery}
-                    onChange={(e) => {
-                      setSearchQuery(e.target.value);
-                      setShowSearchSuggestions(e.target.value.length > 0);
-                    }}
-                    onFocus={() => {
-                      setIsSearchFocused(true);
-                      setShowSearchSuggestions(searchQuery.length > 0);
-                    }}
-                    onBlur={() => {
-                      setTimeout(() => setIsSearchFocused(false), 200);
-                      setTimeout(() => setShowSearchSuggestions(false), 300);
-                    }}
-                    onKeyPress={handleKeyPress}
-                    aria-label="Search products"
-                    className="search-input w-full px-4 py-2 border-2 rounded-2xl focus:outline-none focus:ring-4 focus:ring-green-500/50 text-white placeholder-green-300 transition-all duration-300 bg-gray-800/80 border-green-600 pr-10 rounded-r-none"
-                  />
-
-                  {searchQuery && (
-                    <button
-                      onClick={clearSearch}
-                      className="absolute right-24 cursor-pointer top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors duration-200"
-                      aria-label="Clear search"
-                    >
-                      <FaTimes className="text-sm" />
-                    </button>
-                  )}
-
-                  <button
-                    onClick={handleSearch}
-                    className="search-btn px-6 py-3 cursor-pointer text-white rounded-2xl hover:opacity-90 transition-all duration-300 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 relative overflow-hidden group rounded-l-none border-l-0"
-                    aria-label="Search"
-                  >
-                    <FaSearch className="relative z-10" />
-                    <div className="absolute inset-0 bg-gradient-to-r from-green-500 to-blue-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  </button>
+            {/* Desktop Navigation Search */}
+            <div className="hidden lg:flex flex-1 max-w-2xl relative">
+              <div className={`w-full relative group transition-standard ${isSearchFocused ? 'scale-[1.01]' : ''}`}>
+                <div className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-aqua-500 transition-colors">
+                  <FaSearch />
                 </div>
-
-                {/* Search Suggestions */}
+                <input
+                  type="text"
+                  placeholder="Find your next adventure..."
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setShowSearchSuggestions(e.target.value.length > 0);
+                  }}
+                  onFocus={() => setIsSearchFocused(true)}
+                  onBlur={() => {
+                    setTimeout(() => setIsSearchFocused(false), 200);
+                    setTimeout(() => setShowSearchSuggestions(false), 300);
+                  }}
+                  className="w-full pl-14 pr-12 py-4 bg-gray-50 border border-gray-100 rounded-[20px] outline-none font-semibold text-gray-900 placeholder-gray-300 focus:bg-white focus:border-aqua-200 focus:ring-4 focus:ring-aqua-500/5 transition-standard shadow-inner-sm"
+                />
+                {searchQuery && (
+                  <button onClick={clearSearch} className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-500">
+                    <FaTimes />
+                  </button>
+                )}
+                
+                {/* Suggestions Dropdown */}
                 {showSearchSuggestions && (
-                  <div className="absolute top-full left-0 right-0 mt-2 bg-gray-900/95 backdrop-blur-md rounded-2xl shadow-2xl border border-green-600/30 overflow-hidden z-50">
-                    <div className="p-2 max-h-60 overflow-y-auto">
+                  <div className="absolute top-full left-0 right-0 mt-3 bg-white rounded-3xl shadow-premium border border-gray-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-300">
+                    <div className="p-3">
                       {searchSuggestions
-                        .filter((suggestion) =>
-                          suggestion
-                            .toLowerCase()
-                            .includes(searchQuery.toLowerCase())
-                        )
-                        .map((suggestion, index) => (
-                          <div
-                            key={index}
-                            onClick={() => handleSuggestionClick(suggestion)}
-                            className="suggestion-item p-3 hover:bg-green-600/20 rounded-lg cursor-pointer transition-all duration-200 hover:translate-x-1 flex items-center"
-                            style={{ animationDelay: `${index * 0.1}s` }}
-                          >
-                            <FaSearch className="text-green-400 mr-3 text-sm opacity-70" />
-                            <span className="text-white">{suggestion}</span>
+                        .filter(s => s.toLowerCase().includes(searchQuery.toLowerCase()))
+                        .map((s, i) => (
+                          <div key={i} className="px-5 py-3 hover:bg-aqua-50 rounded-2xl cursor-pointer flex items-center gap-4 text-gray-600 font-bold text-sm transition-colors">
+                            <FaSearch className="text-aqua-300" />
+                            {s}
                           </div>
                         ))}
-
-                      {searchQuery &&
-                        searchSuggestions.filter((s) =>
-                          s.toLowerCase().includes(searchQuery.toLowerCase())
-                        ).length === 0 && (
-                          <div className="p-3 text-gray-400 text-center">
-                            No results found for "{searchQuery}"
-                          </div>
-                        )}
                     </div>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Action Icons */}
-            <div className="flex items-center space-x-4 text-white text-xl shrink-0">
-              <button
-                className="hover:text-green-400 relative cursor-pointer group transition-all duration-300 hover:scale-110"
-                aria-label="Favorites"
-              >
-                <FaHeart />
-                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                  3
-                </span>
-                <span
-                  className={`absolute hidden group-hover:block text-sm text-white px-2 py-1 rounded-2xl -bottom-8 transition-all duration-300 ${
-                    isScrolled ? "bg-black/80 backdrop-blur-sm" : "bg-gray-800"
-                  }`}
-                >
-                  Favorites
-                </span>
+            {/* Action Buttons */}
+            <div className="flex items-center gap-3">
+              <button className="p-3 text-gray-400 hover:text-red-500 transition-colors relative">
+                <FaHeart className="text-xl" />
+                <span className="absolute top-2 right-2 w-4 h-4 bg-red-500 text-white text-[8px] font-black rounded-full flex items-center justify-center border-2 border-white">3</span>
               </button>
-
-              <button
-                className="hover:text-green-400 cursor-pointer relative group transition-all duration-300 hover:scale-110"
-                aria-label="Shopping Cart"
+              
+              <button 
                 onClick={() => navigateTo("/cart")}
+                className="p-3 text-gray-400 hover:text-aqua-600 transition-colors relative"
               >
-                <FaShoppingCart />
-                <span className="absolute -top-2 -right-2 bg-green-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                  2
-                </span>
-                <span
-                  className={`absolute hidden group-hover:block text-sm text-white px-2 py-1 rounded-2xl -bottom-8 transition-all duration-300 ${
-                    isScrolled ? "bg-black/80 backdrop-blur-sm" : "bg-gray-800"
-                  }`}
-                >
-                  Cart
-                </span>
+                <FaShoppingCart className="text-xl" />
+                <span className="absolute top-2 right-2 w-4 h-4 bg-aqua-500 text-white text-[8px] font-black rounded-full flex items-center justify-center border-2 border-white">2</span>
               </button>
 
-              <button
+              <div className="h-8 w-[1px] bg-gray-100 mx-2 hidden sm:block"></div>
+
+              <button 
                 onClick={() => setShowLoginModal(true)}
-                className="hover:text-green-400 cursor-pointer relative group transition-all duration-300 hover:scale-110"
-                aria-label="User Profile"
+                className="flex items-center gap-3 px-5 py-2.5 rounded-full bg-gray-50 hover:bg-white border border-transparent hover:border-gray-100 shadow-soft transition-standard group"
               >
-                <FaUser />
-                <span
-                  className={`absolute hidden group-hover:block text-sm text-white px-2 py-1 rounded-2xl -bottom-8 transition-all duration-300 ${
-                    isScrolled ? "bg-black/80 backdrop-blur-sm" : "bg-gray-800"
-                  }`}
-                >
-                  Profile
-                </span>
-              </button>
-            </div>
-          </div>
-
-          {/* Mobile Search */}
-          <div
-            className={`mt-3 md:hidden transition-all duration-300 ${
-              isScrolled ? "opacity-90" : "opacity-100"
-            }`}
-          >
-            <div className="flex w-full relative">
-              <input
-                type="text"
-                placeholder="Search attractions..."
-                value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  setShowSearchSuggestions(e.target.value.length > 0);
-                }}
-                onFocus={() => setShowSearchSuggestions(searchQuery.length > 0)}
-                onBlur={() =>
-                  setTimeout(() => setShowSearchSuggestions(false), 300)
-                }
-                onKeyPress={handleKeyPress}
-                aria-label="Search products"
-                className="w-full px-4 py-3 border-2 rounded-2xl focus:outline-none focus:ring-4 focus:ring-green-500/50 text-white placeholder-green-300 bg-gray-800/80 border-green-600 pr-12"
-              />
-
-              {searchQuery && (
-                <button
-                  onClick={clearSearch}
-                  className="absolute right-16 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors duration-200"
-                  aria-label="Clear search"
-                >
-                  <FaTimes className="text-sm" />
-                </button>
-              )}
-
-              <button
-                onClick={handleSearch}
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-green-600 text-white p-3 rounded-2xl hover:bg-green-700 transition-colors duration-300"
-                aria-label="Search"
-              >
-                <FaSearch />
-              </button>
-            </div>
-
-            {/* Mobile Search Suggestions */}
-            {showSearchSuggestions && (
-              <div className="absolute left-0 right-0 mt-2 bg-gray-900/95 backdrop-blur-md rounded-2xl shadow-2xl border border-green-600/30 overflow-hidden z-50">
-                <div className="p-2 max-h-60 overflow-y-auto">
-                  {searchSuggestions
-                    .filter((suggestion) =>
-                      suggestion
-                        .toLowerCase()
-                        .includes(searchQuery.toLowerCase())
-                    )
-                    .map((suggestion, index) => (
-                      <div
-                        key={index}
-                        onClick={() => handleSuggestionClick(suggestion)}
-                        className="suggestion-item p-3 hover:bg-green-600/20 rounded-2xl cursor-pointer transition-all duration-200"
-                      >
-                        <span className="text-white">{suggestion}</span>
-                      </div>
-                    ))}
+                <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-gray-400 shadow-sm group-hover:text-aqua-500">
+                  <FaUser />
                 </div>
-              </div>
-            )}
+                <span className="text-sm font-black text-gray-700">Account</span>
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Login/Signup Modal */}
+        {/* Login Modal */}
         {showLoginModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 modal-overlay overflow-y-auto">
-            <div
-              className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-              onClick={() => setShowLoginModal(false)}
-            ></div>
-
-            <div className="relative bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl border border-gray-700/50 shadow-2xl max-w-md w-full mx-4">
-              {/* Close Button */}
-              <button
-                onClick={() => setShowLoginModal(false)}
-                className="absolute top-4 right-4 cursor-pointer text-gray-400 hover:text-white transition-colors z-10"
-              >
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+            <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm" onClick={() => setShowLoginModal(false)}></div>
+            <div className="relative bg-white rounded-[40px] shadow-premium max-w-md w-full overflow-hidden animate-in zoom-in-95 duration-300">
+              <button onClick={() => setShowLoginModal(false)} className="absolute top-8 right-8 text-gray-300 hover:text-gray-900 transition-colors">
                 <FaTimes className="text-xl" />
               </button>
 
-              <div className="p-8">
-                {/* Header */}
-                <div className="text-center mb-8">
-                  <h2 className="text-2xl font-bold text-white mb-2">
-                    Login/Signup to Your Account
-                  </h2>
-                  <p className="text-gray-400">
-                    Enter your Mobile/Whatsapp number
-                  </p>
+              <div className="p-12">
+                <div className="text-center mb-10">
+                  <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-aqua-50 text-aqua-600 text-3xl mb-6 shadow-sm border border-aqua-100/50">
+                    <FaLock />
+                  </div>
+                  <h2 className="text-3xl font-black text-gray-900 tracking-tight mb-3">Family Access</h2>
+                  <p className="text-gray-500 font-bold text-sm uppercase tracking-widest px-4">Secure login for your water adventure</p>
                 </div>
 
-                {/* Phone Input */}
                 {!otpSent ? (
                   <div className="space-y-6">
-                    <div className="relative">
-                      <div className="flex items-center bg-gray-800/50 border border-gray-600 rounded-2xl px-4 py-3 focus-within:border-green-500 transition-colors">
-                        <span className="text-white mr-2">+91</span>
-                        <input
-                          type="tel"
-                          value={phoneNumber}
-                          onChange={(e) =>
-                            setPhoneNumber(
-                              e.target.value.replace(/\D/g, "").slice(0, 10)
-                            )
-                          }
-                          placeholder="Enter your Mobile/Whatsapp number"
-                          className="flex-1 bg-transparent border-none outline-none text-white placeholder-gray-400"
-                          maxLength={10}
-                        />
-                        {phoneNumber && (
-                          <FaCheck className="text-green-500 ml-2" />
-                        )}
+                    <div className="space-y-2">
+                       <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">Registered Mobile</label>
+                       <div className="flex items-center bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4 focus-within:bg-white focus-within:border-aqua-200 transition-standard group">
+                         <span className="text-gray-900 font-black mr-3">+91</span>
+                         <input
+                           type="tel"
+                           value={phoneNumber}
+                           onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, "").slice(0, 10))}
+                           placeholder="Enter 10 digit number"
+                           className="flex-1 bg-transparent border-none outline-none text-gray-900 font-bold placeholder-gray-300"
+                         />
+                         {phoneNumber.length === 10 && <FaCheck className="text-emerald-500" />}
+                       </div>
+                    </div>
+
+                    <div className="bg-aqua-50/50 border border-aqua-100 rounded-3xl p-6 flex items-start gap-4">
+                      <div className="p-2 bg-white rounded-xl shadow-sm">
+                        <FaGift className="text-aqua-500" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-gray-900">Adventure Perks</p>
+                        <p className="text-xs text-gray-500 mt-1 font-medium italic">Earn 2% share credits on every booking.</p>
                       </div>
                     </div>
 
-                    {/* Benefits */}
-                    <div className="bg-green-500/10 border border-green-500/20 rounded-2xl p-4">
-                      <div className="flex items-center text-green-400 mb-2">
-                        <FaGift className="mr-2" />
-                        <span className="font-semibold">
-                          Earn share credits upto 2% as you go
-                        </span>
-                      </div>
-                      <p className="text-green-300 text-sm">
-                        Terms and conditions apply
-                      </p>
-                    </div>
+                    <Button onClick={() => setOtpSent(true)} disabled={phoneNumber.length !== 10} className="w-full">
+                      Generate Passcode
+                    </Button>
 
-                    {/* Get OTP Button */}
-                    <button
-                      onClick={handleSendOtp}
-                      disabled={phoneNumber.length !== 10}
-                      className="w-full cursor-pointer bg-gradient-to-r from-green-600 to-green-700 text-white py-4 rounded-2xl font-semibold hover:from-green-700 hover:to-green-800 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center"
-                    >
-                      Get OTP →
-                    </button>
-
-                    {/* Contact Options */}
-                    <div className="flex space-x-4">
-                      <button className="flex-1 cursor-pointer flex items-center justify-center space-x-2 bg-blue-600/20 text-blue-400 py-2 rounded-lg border border-blue-500/30 hover:bg-blue-600/30 transition-colors">
-                        <FaPhone />
-                        <span>Call</span>
+                    <div className="grid grid-cols-2 gap-4">
+                      <button className="flex items-center justify-center gap-2 py-3 border border-gray-100 rounded-2xl text-gray-600 text-xs font-bold hover:bg-gray-50 transition-colors">
+                        <FaPhone className="text-aqua-400" /> Support
                       </button>
-                      <button className="flex-1 cursor-pointer flex items-center justify-center space-x-2 bg-green-600/20 text-green-400 py-2 rounded-lg border border-green-500/30 hover:bg-green-600/30 transition-colors">
-                        <FaWhatsapp />
-                        <span>WhatsApp</span>
+                      <button className="flex items-center justify-center gap-2 py-3 border border-gray-100 rounded-2xl text-gray-600 text-xs font-bold hover:bg-emerald-50 transition-colors">
+                        <FaWhatsapp className="text-emerald-500" /> WhatsApp
                       </button>
                     </div>
                   </div>
                 ) : (
-                  /* OTP Verification */
-                  <div className="space-y-6">
+                  <div className="space-y-8 animate-in slide-in-from-bottom-4 duration-300">
                     <div className="text-center">
-                      <p className="text-gray-400 mb-4">
-                        Enter OTP sent to{" "}
-                        <span className="text-white">+91 {phoneNumber}</span>
-                      </p>
-
-                      <div className="flex justify-center space-x-2 mb-6">
-                        {otp.map((digit, index) => (
+                      <p className="text-gray-500 font-bold mb-6">Enter code sent to +91 {phoneNumber}</p>
+                      <div className="flex justify-center gap-3">
+                        {otp.map((d, i) => (
                           <input
-                            key={index}
-                            id={`otp-${index}`}
+                            key={i}
+                            id={`otp-${i}`}
                             type="text"
-                            value={digit}
-                            onChange={(e) => handleOtpChange(e, index)}
-                            onKeyDown={(e) => handleOtpKeyDown(e, index)}
-                            onPaste={handleOtpPaste}
-                            onFocus={() => setActiveOtpIndex(index)}
+                            value={d}
+                            onChange={(e) => handleOtpChange(e, i)}
                             maxLength={1}
-                            className="otp-input w-12 h-12 text-center text-white text-xl bg-gray-800/50 border-2 border-gray-600 rounded-lg focus:border-green-500 outline-none transition-colors"
+                            className="w-12 h-16 text-center text-2xl font-black bg-gray-50 border-2 border-transparent focus:border-aqua-500 focus:bg-white rounded-2xl outline-none transition-standard shadow-sm"
                           />
                         ))}
                       </div>
                     </div>
 
-                    <button
-                      onClick={handleVerifyOtp}
-                      disabled={otp.join("").length !== 6}
-                      className="w-full cursor-pointer bg-gradient-to-r from-green-600 to-green-700 text-white py-4 rounded-2xl font-semibold hover:from-green-700 hover:to-green-800 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed transition-all duration-300"
-                    >
-                      Verify OTP
-                    </button>
-
-                    <button
-                      onClick={() => setOtpSent(false)}
-                      className="w-full cursor-pointer text-gray-400 hover:text-white transition-colors"
-                    >
-                      Change Number
+                    <Button className="w-full">Explore Now</Button>
+                    <button onClick={() => setOtpSent(false)} className="w-full text-center text-xs font-black text-gray-400 uppercase tracking-widest hover:text-aqua-600 transition-colors">
+                      Edit Number
                     </button>
                   </div>
                 )}
-
-                {/* Footer */}
-                <div className="mt-6 pt-6 border-t border-gray-600/50">
-                  <p className="text-gray-400 text-sm text-center">
-                    By continuing, you agree to the{" "}
-                    <a href="#" className="text-green-400 hover:underline">
-                      Terms and conditions
-                    </a>{" "}
-                    and acknowledge the{" "}
-                    <a href="#" className="text-green-400 hover:underline">
-                      Privacy Policy
-                    </a>
-                  </p>
-
-                  <div className="flex items-center justify-center mt-4 text-gray-400">
-                    <FaLock className="mr-2 text-green-400" />
-                    <span className="text-sm">Secure & Encrypted</span>
-                  </div>
-                </div>
               </div>
             </div>
           </div>
