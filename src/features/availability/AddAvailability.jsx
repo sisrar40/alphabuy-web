@@ -1,26 +1,42 @@
-import React, { useState, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
-import { addAvailability } from './availabilitySlice';
-import { fetchParks } from '../parks/parkSlice';
-import PageHeader from '../../components/ui/PageHeader';
-import Button from '../../components/ui/Button';
-import Input from '../../components/ui/Input';
-import Select from '../../components/ui/Select';
-import Badge from '../../components/ui/Badge';
-import { FaCalendarAlt, FaTicketAlt, FaArrowLeft, FaCheckCircle } from 'react-icons/fa';
+import React, { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { addAvailability } from "./availabilitySlice";
+import { fetchParks } from "../parks/parkSlice";
+import PageHeader from "../../components/ui/PageHeader";
+import Button from "../../components/ui/Button";
+import Input from "../../components/ui/Input";
+import Select from "../../components/ui/Select";
+import Badge from "../../components/ui/Badge";
+import {
+  FaCalendarAlt,
+  FaTicketAlt,
+  FaArrowLeft,
+  FaCheckCircle,
+  FaTimesCircle,
+  FaInfoCircle,
+  FaClock,
+  FaUsers,
+  FaWater,
+} from "react-icons/fa";
 
 const AddAvailability = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
-  const { items: parks, loading: parksLoading } = useSelector((state) => state.parks);
-  
+  const [errors, setErrors] = useState({});
+  const { items: parks, loading: parksLoading } = useSelector(
+    (state) => state.parks,
+  );
+
   const [formData, setFormData] = useState({
-    parkId: '',
-    date: '',
-    availableSlots: '',
+    parkId: "",
+    date: "",
+    availableSlots: "",
+    timeSlot: "full-day",
+    maxCapacity: "",
+    notes: "",
   });
 
   useEffect(() => {
@@ -30,180 +46,363 @@ const AddAvailability = () => {
   }, [dispatch, parks.length]);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+    // Clear error for this field
+    if (errors[name]) {
+      setErrors({ ...errors, [name]: "" });
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+    if (!formData.parkId) newErrors.parkId = "Please select a park";
+    if (!formData.date) newErrors.date = "Please select a date";
+    if (!formData.availableSlots)
+      newErrors.availableSlots = "Available slots is required";
+    if (formData.availableSlots && parseInt(formData.availableSlots) <= 0) {
+      newErrors.availableSlots = "Slots must be greater than 0";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.parkId) return alert('Please select a park first');
+    if (!validateForm()) return;
+
+    if (!formData.parkId) {
+      alert("Please select a park first");
+      return;
+    }
+
     setLoading(true);
     setSuccess(false);
-    
+
     try {
       await dispatch(addAvailability(formData)).unwrap();
       setSuccess(true);
-      setFormData(prev => ({ ...prev, date: '', availableSlots: '' }));
+      setFormData((prev) => ({
+        ...prev,
+        date: "",
+        availableSlots: "",
+        notes: "",
+      }));
+
+      // Auto-hide success message after 3 seconds
       setTimeout(() => setSuccess(false), 3000);
     } catch (error) {
-      console.error('Failed to update inventory:', error);
+      console.error("Failed to update inventory:", error);
+      setErrors({ submit: "Failed to update inventory. Please try again." });
     } finally {
       setLoading(false);
     }
   };
 
   const parkOptions = [
-    { label: 'Select a Park Location', value: '' },
-    ...parks.map(p => ({ label: p.parkName, value: p.id }))
+    { label: "Select a Park", value: "" },
+    ...parks.map((p) => ({ label: p.parkName, value: p.id })),
   ];
 
+  const timeSlotOptions = [
+    { label: "Full Day", value: "full-day" },
+    { label: "Morning (9AM - 12PM)", value: "morning" },
+    { label: "Afternoon (12PM - 3PM)", value: "afternoon" },
+    { label: "Evening (3PM - 6PM)", value: "evening" },
+    { label: "Night (6PM - 9PM)", value: "night" },
+  ];
+
+  // Get min date (today)
+  const today = new Date().toISOString().split("T")[0];
+
   return (
-    <div className="space-y-10 pb-12 animate-in fade-in slide-in-from-bottom-8 duration-1000">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-6">
-          <button 
-            onClick={() => navigate('/admin/dashboard')} 
-            className="w-12 h-12 rounded-2xl bg-white border border-gray-50 flex items-center justify-center text-gray-500 hover:text-aqua-600 hover:shadow-premium transition-all duration-500 shadow-soft active:scale-95"
-          >
-            <FaArrowLeft className="text-lg" />
-          </button>
-          <div>
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none mb-2">Inventory Management</p>
-            <h1 className="text-3xl font-bold text-gray-900 tracking-tight font-display leading-none">Schedule Capacity</h1>
-          </div>
-        </div>
-        
-        <div className="hidden md:flex items-center gap-3 bg-white px-6 py-3 rounded-2xl border border-gray-50 shadow-soft">
-           <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
-           <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Inventory Grid Active</span>
+    <div className="space-y-6">
+      {/* Header with back button */}
+      <div className="flex items-center gap-4">
+        <button
+          onClick={() => navigate("/admin/dashboard")}
+          className="w-10 h-10 rounded-lg bg-gray-100 text-gray-600 flex items-center justify-center hover:bg-blue-600 hover:text-white transition-all"
+        >
+          <FaArrowLeft />
+        </button>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">
+            Schedule Capacity
+          </h1>
+          <p className="text-sm text-gray-500 mt-1">
+            Manage daily visitor capacity for water parks
+          </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-        <div className="lg:col-span-8">
-          <div className="premium-card p-10 md:p-14 border-none relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-aqua-50/50 rounded-full blur-[100px] -mr-32 -mt-32"></div>
-            
-            {success && (
-              <div className="absolute top-0 left-0 right-0 bg-emerald-50 px-10 py-5 border-b border-emerald-100 text-emerald-600 flex items-center gap-3 animate-in slide-in-from-top duration-500 z-20">
-                <FaCheckCircle className="text-lg" />
-                <span className="text-[10px] font-bold uppercase tracking-wider">Inventory manifest successfully synchronized.</span>
-              </div>
-            )}
+      {/* Success Message */}
+      {success && (
+        <div className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-center gap-3 animate-in slide-in-from-top duration-300">
+          <FaCheckCircle className="text-green-600 text-lg" />
+          <span className="text-sm font-medium text-green-700">
+            Inventory successfully updated and synchronized.
+          </span>
+        </div>
+      )}
 
-            <form onSubmit={handleSubmit} className={`space-y-12 relative z-10 ${success ? 'pt-8' : ''} transition-all duration-500`}>
-              {/* Node Selection */}
-              <div className="space-y-8">
-                <div className="flex items-center gap-4 mb-2">
-                   <div className="w-1.5 h-6 bg-premium-gradient rounded-full"></div>
-                   <h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Operational node</h3>
-                </div>
-                
-                <div className="space-y-2 max-w-md">
-                  <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest ml-1">Target Asset Location</span>
-                  <Select 
-                    name="parkId"
-                    value={formData.parkId}
+      {/* Main Form */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Form Column */}
+        <div className="lg:col-span-2">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <form onSubmit={handleSubmit} className="p-6">
+              {/* Park Selection */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Select Park <span className="text-red-500">*</span>
+                </label>
+                <Select
+                  name="parkId"
+                  value={formData.parkId}
+                  onChange={handleChange}
+                  options={parkOptions}
+                  disabled={parksLoading}
+                  className={errors.parkId ? "border-red-500" : ""}
+                />
+                {errors.parkId && (
+                  <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+                    <FaTimesCircle /> {errors.parkId}
+                  </p>
+                )}
+                {parksLoading && (
+                  <p className="text-xs text-gray-500 mt-1">Loading parks...</p>
+                )}
+              </div>
+
+              {/* Date and Slots */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Date <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    name="date"
+                    type="date"
+                    min={today}
+                    value={formData.date}
                     onChange={handleChange}
-                    options={parkOptions}
-                    disabled={parksLoading}
-                    className="!py-5 !px-6 !rounded-[24px] !bg-gray-50 border-gray-100 focus:border-aqua-500 focus:bg-white transition-all font-medium"
-                    required
+                    icon={FaCalendarAlt}
+                    className={errors.date ? "border-red-500" : ""}
+                  />
+                  {errors.date && (
+                    <p className="text-xs text-red-500 mt-1">{errors.date}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Available Slots <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    name="availableSlots"
+                    type="number"
+                    placeholder="e.g. 1000"
+                    value={formData.availableSlots}
+                    onChange={handleChange}
+                    icon={FaTicketAlt}
+                    className={errors.availableSlots ? "border-red-500" : ""}
+                  />
+                  {errors.availableSlots && (
+                    <p className="text-xs text-red-500 mt-1">
+                      {errors.availableSlots}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Time Slot and Max Capacity */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Time Slot
+                  </label>
+                  <select
+                    name="timeSlot"
+                    value={formData.timeSlot}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                  >
+                    {timeSlotOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Max Capacity (optional)
+                  </label>
+                  <Input
+                    name="maxCapacity"
+                    type="number"
+                    placeholder="e.g. 5000"
+                    value={formData.maxCapacity}
+                    onChange={handleChange}
+                    icon={FaUsers}
                   />
                 </div>
               </div>
 
-              {/* Temporal Allocation */}
-              <div className="space-y-8">
-                <div className="flex items-center gap-4 mb-2">
-                   <div className="w-1.5 h-6 bg-blue-500 rounded-full"></div>
-                   <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Temporal Allocation</h3>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="space-y-2">
-                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest ml-1">Operational Date</span>
-                    <Input 
-                      name="date"
-                      type="date"
-                      value={formData.date}
-                      onChange={handleChange}
-                      icon={FaCalendarAlt}
-                      className="!py-5 !px-6 !rounded-[24px] !bg-gray-50 border-gray-100 focus:border-aqua-500 focus:bg-white transition-all font-medium"
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest ml-1">Asset Capacity (Slots)</span>
-                    <Input 
-                      name="availableSlots"
-                      type="number"
-                      placeholder="e.g. 1000"
-                      value={formData.availableSlots}
-                      onChange={handleChange}
-                      icon={FaTicketAlt}
-                      className="!py-5 !px-6 !rounded-[24px] !bg-gray-50 border-gray-100 focus:border-aqua-500 focus:bg-white transition-all font-medium text-gray-900"
-                      required
-                    />
-                  </div>
-                </div>
+              {/* Notes */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Additional Notes
+                </label>
+                <textarea
+                  name="notes"
+                  value={formData.notes}
+                  onChange={handleChange}
+                  rows="3"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
+                  placeholder="Any special instructions or notes about this date..."
+                />
               </div>
 
-              {/* Authority Interface */}
-              <div className="flex items-center justify-end gap-6 pt-10 border-t border-gray-50">
-                <button 
+              {/* Form Actions */}
+              <div className="flex items-center justify-end gap-3 pt-6 border-t border-gray-200">
+                <button
                   type="button"
-                  onClick={() => navigate('/admin/dashboard')}
-                  className="px-10 py-5 rounded-[24px] border border-gray-50 bg-white text-[10px] font-bold text-gray-500 uppercase tracking-widest hover:text-gray-900 hover:border-gray-200 transition-all active:scale-95"
+                  onClick={() => navigate("/admin/dashboard")}
+                  className="px-6 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-all"
                 >
-                  Discard
+                  Cancel
                 </button>
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   disabled={loading}
-                  className={`px-12 py-5 rounded-[24px] font-bold text-[10px] uppercase tracking-wider transition-all duration-500 shadow-xl ${
-                    loading 
-                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
-                      : 'bg-premium-gradient text-white shadow-aqua-500/30 hover:shadow-aqua-500/50 hover:scale-[1.02] active:scale-95'
-                  }`}
+                  className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-cyan-500 text-white rounded-lg text-sm font-bold hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
                 >
-                  {loading ? 'Synchronizing...' : 'Authorize Allocation'}
+                  {loading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <FaCheckCircle />
+                      Save Schedule
+                    </>
+                  )}
                 </button>
               </div>
+
+              {/* Submit Error */}
+              {errors.submit && (
+                <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600 flex items-center gap-2">
+                  <FaTimesCircle />
+                  {errors.submit}
+                </div>
+              )}
             </form>
           </div>
         </div>
 
-        {/* Intelligence Sidebar */}
-        <div className="lg:col-span-4 space-y-8">
-           <div className="premium-card p-10 border-none relative overflow-hidden group">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full blur-[60px] -mr-16 -mt-16"></div>
-              <h4 className="font-bold text-xl text-gray-900 mb-4 font-display relative z-10">Inventory Guard</h4>
-              <p className="text-[11px] font-medium text-gray-500 leading-relaxed mb-8 relative z-10">Asset capacity should be determined based on infrastructure throughput limits and safety protocols. Once authorized, slots are broadcasted to the grid.</p>
-              
-              <div className="space-y-4 relative z-10">
-                 <div className="p-4 bg-blue-50 rounded-2xl border border-blue-100 flex items-center gap-3">
-                    <FaCalendarAlt className="text-blue-500" />
-                    <span className="text-[9px] font-bold text-blue-700 uppercase tracking-widest leading-none">Real-time scheduling active</span>
-                 </div>
+        {/* Info Sidebar */}
+        <div className="lg:col-span-1 space-y-4">
+          {/* Quick Stats */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+            <h3 className="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2">
+              <FaInfoCircle className="text-blue-600" />
+              Quick Stats
+            </h3>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-xs text-gray-500">Total Parks</span>
+                <span className="text-sm font-bold text-gray-900">
+                  {parks.length}
+                </span>
               </div>
-           </div>
-           
-           <div className="bg-gray-900 rounded-[40px] p-10 text-white relative overflow-hidden group shadow-2xl">
-              <div className="absolute inset-0 bg-premium-gradient opacity-0 group-hover:opacity-10 transition-opacity duration-700"></div>
-              <div className="flex items-center gap-4 mb-6">
-                 <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-aqua-400">
-                    <FaCalendarAlt />
-                 </div>
-                 <h4 className="font-bold text-lg font-display leading-none">Roadmap Node</h4>
+              <div className="flex justify-between items-center">
+                <span className="text-xs text-gray-500">Today's Date</span>
+                <span className="text-sm font-bold text-gray-900">
+                  {new Date().toLocaleDateString("en-IN")}
+                </span>
               </div>
-              <p className="text-[11px] font-medium text-white/40 leading-relaxed mb-6">In future cycles, bulk temporal allocation across date ranges will be enabled via the range UI.</p>
-              <div className="flex items-center gap-2">
-                 <div className="w-full h-[2px] bg-white/5 rounded-full relative overflow-hidden">
-                    <div className="absolute inset-0 bg-aqua-500 w-1/3 rounded-full"></div>
-                 </div>
-                 <span className="text-[8px] font-bold uppercase tracking-widest text-white/20 whitespace-nowrap">v2.4 Pending</span>
+              <div className="flex justify-between items-center">
+                <span className="text-xs text-gray-500">Time</span>
+                <span className="text-sm font-bold text-gray-900">
+                  {new Date().toLocaleTimeString("en-IN", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </span>
               </div>
-           </div>
+            </div>
+          </div>
+
+          {/* Tips Card */}
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+            <h3 className="text-sm font-bold text-blue-900 mb-2 flex items-center gap-2">
+              <FaInfoCircle className="text-blue-600" />
+              Scheduling Tips
+            </h3>
+            <ul className="text-xs text-blue-800 space-y-2">
+              <li className="flex items-start gap-2">
+                <span className="text-blue-600">•</span>
+                Set available slots based on park's daily capacity
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-blue-600">•</span>
+                Consider peak hours and weekends for higher allocation
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-blue-600">•</span>
+                Update inventory at least 24 hours in advance
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-blue-600">•</span>
+                Add notes for special events or maintenance
+              </li>
+            </ul>
+          </div>
+
+          {/* Recent Activity Placeholder */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+            <h3 className="text-sm font-bold text-gray-900 mb-3">
+              Recent Updates
+            </h3>
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <div className="flex-1">
+                  <p className="text-xs font-medium text-gray-900">
+                    AquaZen Paradise
+                  </p>
+                  <p className="text-[10px] text-gray-500">
+                    Updated 2 hours ago
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                <div className="flex-1">
+                  <p className="text-xs font-medium text-gray-900">
+                    Splash Kingdom
+                  </p>
+                  <p className="text-[10px] text-gray-500">
+                    Updated 5 hours ago
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
+                <div className="flex-1">
+                  <p className="text-xs font-medium text-gray-900">
+                    Wave World
+                  </p>
+                  <p className="text-[10px] text-gray-500">No updates today</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

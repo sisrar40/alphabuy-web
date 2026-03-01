@@ -1,219 +1,329 @@
-import React, { useState } from 'react';
-import { useDispatch } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
-import { addPark } from './parkSlice';
-import PageHeader from '../../components/ui/PageHeader';
-import Button from '../../components/ui/Button';
-import Input from '../../components/ui/Input';
-import { FaMapMarkerAlt, FaTag, FaFileImage, FaArrowLeft } from 'react-icons/fa';
+import React, { useState } from "react";
+import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { addPark } from "./parkSlice";
+import PageHeader from "../../components/ui/PageHeader";
+import Button from "../../components/ui/Button";
+import Input from "../../components/ui/Input";
+import {
+  FaMapMarkerAlt,
+  FaTag,
+  FaFileImage,
+  FaArrowLeft,
+  FaWater,
+  FaDollarSign,
+  FaInfoCircle,
+  FaCheckCircle,
+  FaTimesCircle,
+} from "react-icons/fa";
 
 const AddPark = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
   const [formData, setFormData] = useState({
-    parkName: '',
-    location: '',
-    description: '',
-    price: '',
-    image: ''
+    parkName: "",
+    location: "",
+    description: "",
+    price: "",
+    image: "",
+    capacity: "",
+    openingTime: "10:00",
+    closingTime: "20:00",
+    status: "active",
   });
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+    // Clear error for this field
+    if (errors[name]) {
+      setErrors({ ...errors, [name]: "" });
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+    if (!formData.parkName.trim()) newErrors.parkName = "Park name is required";
+    if (!formData.location.trim()) newErrors.location = "Location is required";
+    if (!formData.description.trim())
+      newErrors.description = "Description is required";
+    if (!formData.price) newErrors.price = "Price is required";
+    if (formData.price && parseFloat(formData.price) <= 0)
+      newErrors.price = "Price must be greater than 0";
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validateForm()) return;
+
     setLoading(true);
     try {
       await dispatch(addPark(formData)).unwrap();
-      navigate('/admin/parks');
+      navigate("/admin/parks");
     } catch (error) {
-      console.error('Failed to save park:', error);
+      console.error("Failed to save park:", error);
+      setErrors({ submit: "Failed to save park. Please try again." });
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="space-y-10 pb-12 animate-in fade-in slide-in-from-bottom-8 duration-1000">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-6">
-          <button 
-            onClick={() => navigate('/admin/parks')} 
-            className="w-12 h-12 rounded-2xl bg-white border border-gray-50 flex items-center justify-center text-gray-400 hover:text-aqua-600 hover:shadow-premium transition-all duration-500 shadow-soft active:scale-95"
-          >
-            <FaArrowLeft className="text-lg" />
-          </button>
-          <div>
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none mb-2">Park Registry</p>
-            <h1 className="text-3xl font-bold text-gray-900 tracking-tight font-display leading-none">Initialize Asset</h1>
-          </div>
-        </div>
-        
-        <div className="hidden md:flex items-center gap-3 bg-white px-6 py-3 rounded-2xl border border-gray-50 shadow-soft">
-           <div className="w-2 h-2 rounded-full bg-aqua-500 animate-pulse"></div>
-           <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Awaiting Manifest Data</span>
+    <div className="space-y-6">
+      {/* Header with back button */}
+      <div className="flex items-center gap-4">
+        <button
+          onClick={() => navigate("/admin/parks")}
+          className="w-10 h-10 rounded-lg bg-gray-100 text-gray-600 flex items-center justify-center hover:bg-blue-600 hover:text-white transition-all"
+        >
+          <FaArrowLeft />
+        </button>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">
+            Add New Water Park
+          </h1>
+          <p className="text-sm text-gray-500 mt-1">
+            Create a new water park listing
+          </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-        <div className="lg:col-span-8">
-          <div className="premium-card p-10 md:p-14 border-none relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-aqua-50/50 rounded-full blur-[100px] -mr-32 -mt-32"></div>
-            
-            <form onSubmit={handleSubmit} className="space-y-12 relative z-10">
-              {/* Identity Section */}
-              <div className="space-y-8">
-                <div className="flex items-center gap-4 mb-2">
-                   <div className="w-1.5 h-6 bg-premium-gradient rounded-full"></div>
-                   <h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Core Identity</h3>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="space-y-2">
-                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest ml-1">Asset Designation</span>
-                    <Input 
-                      name="parkName"
-                      placeholder="e.g. Wonderland City"
-                      value={formData.parkName}
-                      onChange={handleChange}
-                      icon={FaTag}
-                      className="!py-5 !px-6 !rounded-[24px] !bg-gray-50 border-gray-100 focus:border-aqua-500 focus:bg-white transition-all font-medium"
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest ml-1">Geographic Coordinates</span>
-                    <Input 
-                      name="location"
-                      placeholder="e.g. Mumbai, India"
-                      value={formData.location}
-                      onChange={handleChange}
-                      icon={FaMapMarkerAlt}
-                      className="!py-5 !px-6 !rounded-[24px] !bg-gray-50 border-gray-100 focus:border-aqua-500 focus:bg-white transition-all font-medium"
-                      required
-                    />
-                  </div>
-                </div>
+      {/* Main Form */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <form onSubmit={handleSubmit} className="p-6">
+          {/* Basic Information */}
+          <div className="mb-8">
+            <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <FaWater className="text-blue-600" />
+              Basic Information
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Park Name <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  name="parkName"
+                  placeholder="e.g. AquaZen Paradise"
+                  value={formData.parkName}
+                  onChange={handleChange}
+                  icon={FaTag}
+                  className={errors.parkName ? "border-red-500" : ""}
+                />
+                {errors.parkName && (
+                  <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+                    <FaTimesCircle /> {errors.parkName}
+                  </p>
+                )}
               </div>
 
-              {/* Narrative Section */}
-              <div className="space-y-8">
-                <div className="flex items-center gap-4 mb-2">
-                   <div className="w-1.5 h-6 bg-blue-500 rounded-full"></div>
-                   <h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Operational Narrative</h3>
-                </div>
-                
-                <div className="space-y-2">
-                  <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest ml-1">Detailed Description</span>
-                  <textarea
-                    name="description"
-                    value={formData.description}
-                    onChange={handleChange}
-                    rows="6"
-                    className="w-full px-8 py-6 bg-gray-50 border border-gray-100 rounded-[32px] focus:ring-4 focus:ring-aqua-500/5 focus:border-aqua-500 focus:bg-white outline-none transition-all duration-500 font-medium text-gray-900 leading-relaxed placeholder:text-gray-400 shadow-soft"
-                    placeholder="Provide a comprehensive breakdown of the park's primary attractions, infrastructure, and unique identifiers..."
-                  ></textarea>
-                </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Location <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  name="location"
+                  placeholder="e.g. Lonavala, Maharashtra"
+                  value={formData.location}
+                  onChange={handleChange}
+                  icon={FaMapMarkerAlt}
+                  className={errors.location ? "border-red-500" : ""}
+                />
+                {errors.location && (
+                  <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+                    <FaTimesCircle /> {errors.location}
+                  </p>
+                )}
               </div>
-
-              {/* Financials & Media */}
-              <div className="space-y-8">
-                <div className="flex items-center gap-4 mb-2">
-                   <div className="w-1.5 h-6 bg-amber-500 rounded-full"></div>
-                   <h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Financials & Visualization</h3>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="space-y-2">
-                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest ml-1">Base Price Quotient (₹)</span>
-                    <Input 
-                      name="price"
-                      type="number"
-                      placeholder="0.00"
-                      value={formData.price}
-                      onChange={handleChange}
-                      icon={() => <span className="font-bold text-aqua-600">₹</span>}
-                      className="!py-5 !px-6 !rounded-[24px] !bg-gray-50 border-gray-100 focus:border-aqua-500 focus:bg-white transition-all font-medium"
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest ml-1">Asset Imagery URI</span>
-                    <Input 
-                      name="image"
-                      placeholder="https://cloud.storage/asset.jpg"
-                      value={formData.image}
-                      onChange={handleChange}
-                      icon={FaFileImage}
-                      className="!py-5 !px-6 !rounded-[24px] !bg-gray-50 border-gray-100 focus:border-aqua-500 focus:bg-white transition-all font-medium"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Submission Area */}
-              <div className="flex items-center justify-end gap-6 pt-10 border-t border-gray-50">
-                <button 
-                  type="button"
-                  onClick={() => navigate('/admin/parks')}
-                  className="px-10 py-5 rounded-[24px] border border-gray-50 bg-white text-[10px] font-bold text-gray-500 uppercase tracking-widest hover:text-gray-900 hover:border-gray-200 transition-all active:scale-95"
-                >
-                  Terminate
-                </button>
-                <button 
-                  type="submit" 
-                  disabled={loading}
-                  className={`px-12 py-5 rounded-[24px] font-bold text-[10px] uppercase tracking-widest transition-all duration-500 shadow-xl ${
-                    loading 
-                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
-                      : 'bg-premium-gradient text-white shadow-aqua-500/30 hover:shadow-aqua-500/50 hover:scale-[1.02] active:scale-95'
-                  }`}
-                >
-                  {loading ? 'Processing...' : 'Deploy Listing'}
-                </button>
-              </div>
-            </form>
+            </div>
           </div>
-        </div>
 
-        {/* Sidebar Info */}
-        <div className="lg:col-span-4 space-y-8">
-           <div className="premium-card p-10 border-none relative overflow-hidden group">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full blur-[60px] -mr-16 -mt-16"></div>
-              <h4 className="font-bold text-xl text-gray-900 mb-4 font-display relative z-10">Data Integrity</h4>
-              <p className="text-[11px] font-medium text-gray-400 leading-relaxed mb-8 relative z-10">Ensure all geographic coordinates and financial parameters are accurate before deployment. All listings undergo real-time synchronization with the global grid.</p>
-              
-              <ul className="space-y-4 relative z-10">
-                 {[
-                   { label: 'High-Res Preview Sync', active: true },
-                   { label: 'Financial Guardrails', active: true },
-                   { label: 'Public Indexing', active: false }
-                 ].map((item, i) => (
-                   <li key={i} className="flex items-center gap-3">
-                      <div className={`w-1.5 h-1.5 rounded-full ${item.active ? 'bg-aqua-500' : 'bg-gray-200'}`}></div>
-                      <span className={`text-[9px] font-bold uppercase tracking-widest ${item.active ? 'text-gray-700' : 'text-gray-400'}`}>{item.label}</span>
-                   </li>
-                 ))}
-              </ul>
-           </div>
-           
-           <div className="bg-gray-900 rounded-[40px] p-10 text-white relative overflow-hidden group shadow-2xl">
-              <div className="absolute inset-0 bg-premium-gradient opacity-0 group-hover:opacity-10 transition-opacity duration-700"></div>
-              <h4 className="font-bold text-xl mb-4 font-display">System Notice</h4>
-              <p className="text-[11px] font-medium text-white font-bold leading-relaxed">Listing deployment typically propagates within 2.4 seconds across all consumer endpoints.</p>
-              <div className="mt-8 pt-8 border-t border-white/10 flex items-center justify-between">
-                 <div className="flex gap-2 text-aqua-400">
-                    <div className="w-2 h-2 rounded-full bg-current animate-pulse"></div>
-                    <div className="w-2 h-2 rounded-full bg-current animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-                    <div className="w-2 h-2 rounded-full bg-current animate-pulse" style={{ animationDelay: '0.4s' }}></div>
-                 </div>
-                 <span className="text-[8px] font-bold uppercase tracking-widest text-white/30">Network Optimized</span>
+          {/* Description */}
+          <div className="mb-8">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Description <span className="text-red-500">*</span>
+            </label>
+            <textarea
+              name="description"
+              value={formData.description}
+              onChange={handleChange}
+              rows="4"
+              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all ${
+                errors.description ? "border-red-500" : "border-gray-300"
+              }`}
+              placeholder="Provide a detailed description of the water park, including attractions, amenities, and unique features..."
+            />
+            {errors.description && (
+              <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+                <FaTimesCircle /> {errors.description}
+              </p>
+            )}
+          </div>
+
+          {/* Pricing & Capacity */}
+          <div className="mb-8">
+            <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <FaDollarSign className="text-green-600" />
+              Pricing & Capacity
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Base Price (₹) <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  name="price"
+                  type="number"
+                  placeholder="1299"
+                  value={formData.price}
+                  onChange={handleChange}
+                  icon={() => <span>₹</span>}
+                  className={errors.price ? "border-red-500" : ""}
+                />
+                {errors.price && (
+                  <p className="text-xs text-red-500 mt-1">{errors.price}</p>
+                )}
               </div>
-           </div>
-        </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Daily Capacity
+                </label>
+                <Input
+                  name="capacity"
+                  type="number"
+                  placeholder="5000"
+                  value={formData.capacity}
+                  onChange={handleChange}
+                  icon={() => <span>👥</span>}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Status
+                </label>
+                <select
+                  name="status"
+                  value={formData.status}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                >
+                  <option value="active">Active</option>
+                  <option value="maintenance">Maintenance</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Operating Hours */}
+          <div className="mb-8">
+            <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <FaInfoCircle className="text-blue-600" />
+              Operating Hours
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Opening Time
+                </label>
+                <input
+                  type="time"
+                  name="openingTime"
+                  value={formData.openingTime}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Closing Time
+                </label>
+                <input
+                  type="time"
+                  name="closingTime"
+                  value={formData.closingTime}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Image URL */}
+          <div className="mb-8">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Image URL
+            </label>
+            <Input
+              name="image"
+              placeholder="https://example.com/image.jpg"
+              value={formData.image}
+              onChange={handleChange}
+              icon={FaFileImage}
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Provide a URL for the park's main image (optional)
+            </p>
+          </div>
+
+          {/* Form Actions */}
+          <div className="flex items-center justify-end gap-3 pt-6 border-t border-gray-200">
+            <button
+              type="button"
+              onClick={() => navigate("/admin/parks")}
+              className="px-6 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-all"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-cyan-500 text-white rounded-lg text-sm font-bold hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
+            >
+              {loading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <FaCheckCircle />
+                  Save Park
+                </>
+              )}
+            </button>
+          </div>
+
+          {/* Submit Error */}
+          {errors.submit && (
+            <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600 flex items-center gap-2">
+              <FaTimesCircle />
+              {errors.submit}
+            </div>
+          )}
+        </form>
+      </div>
+
+      {/* Tips Card */}
+      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+        <h3 className="text-sm font-bold text-blue-900 mb-2 flex items-center gap-2">
+          <FaInfoCircle className="text-blue-600" />
+          Tips for creating a great listing
+        </h3>
+        <ul className="text-sm text-blue-800 space-y-1">
+          <li>• Use a clear, descriptive park name</li>
+          <li>• Include the city and state in location</li>
+          <li>• Provide detailed description of attractions and amenities</li>
+          <li>• Set accurate pricing and capacity information</li>
+          <li>• Use a high-quality image URL for better visibility</li>
+        </ul>
       </div>
     </div>
   );

@@ -1,88 +1,157 @@
 import React, { useState } from "react";
 import {
   FaUsers,
-  FaMapMarkerAlt,
   FaArrowRight,
-  FaArrowLeft,
   FaClock,
   FaCalendarAlt,
-  FaCheck
+  FaSun,
+  FaCloudSun,
+  FaGift,
+  FaRegSun,
+  FaRegMoon,
+  FaChevronLeft,
+  FaChevronRight,
+  FaCheckCircle,
 } from "react-icons/fa";
+import { GiPalmTree } from "react-icons/gi";
 import Button from "./ui/Button";
 
-// Step 1: Date Selection
 const DateSelectionStep = ({ bookingData, setBookingData, nextStep }) => {
   const [selectedDate, setSelectedDate] = useState(bookingData.date);
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState(null);
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+  const [showPriceBreakdown, setShowPriceBreakdown] = useState(false);
+  const [selectedDayType, setSelectedDayType] = useState("weekday");
 
-  // Sample available dates - you can replace this with your actual data
+  // Sample available dates with more realistic data
   const availableDates = [
-    "2026-09-27",
-    "2026-09-28",
-    "2026-09-29",
-    "2026-09-30",
-    "2026-10-01",
+    "2026-03-27",
+    "2026-03-28",
+    "2026-03-29",
+    "2026-03-30",
+    "2026-02-01",
     "2026-10-02",
-    "2026-02-05",
-    "2026-02-06",
-    "2026-02-07",
-    "2026-02-08",
-    "2026-02-09",
-    "2026-02-12",
-    "2026-02-13",
-    "2026-02-14",
-    "2026-02-15",
-    "2026-02-16",
-    "2026-02-19",
-    "2026-02-20",
-    "2026-02-21",
-    "2026-02-22",
-    "2026-02-23",
-    "2026-02-26",
-    "2026-02-27",
-    "2026-02-28",
-    "2026-02-29",
-    "2026-02-30",
+    "2026-10-03",
+    "2026-10-04",
+    "2026-10-05",
+    "2026-10-06",
+    "2026-10-07",
+    "2026-10-08",
+    "2026-10-09",
+    "2026-10-10",
+    "2026-10-11",
+    "2026-10-12",
+    "2026-10-13",
+    "2026-10-14",
+    "2026-10-15",
+    "2026-10-16",
   ];
 
-  // Sample pricing data
+  // Time slots with availability
+  const timeSlots = [
+    {
+      id: 1,
+      time: "09:00 - 12:00",
+      label: "Morning Splash",
+      icon: <FaRegSun />,
+      available: true,
+      capacity: "65% Full",
+    },
+    {
+      id: 2,
+      time: "12:00 - 15:00",
+      label: "Peak Adventure",
+      icon: <FaSun />,
+      available: true,
+      capacity: "85% Full",
+    },
+    {
+      id: 3,
+      time: "15:00 - 18:00",
+      label: "Evening Wave",
+      icon: <FaCloudSun />,
+      available: true,
+      capacity: "45% Full",
+    },
+    {
+      id: 4,
+      time: "18:00 - 21:00",
+      label: "Moonlight Swim",
+      icon: <FaRegMoon />,
+      available: false,
+      capacity: "Sold Out",
+    },
+  ];
+
+  // Pricing data with dynamic rates
   const pricingData = {
     weekday: 899,
     weekend: 1199,
     special: 1099,
+    peak: 1299,
+    offPeak: 799,
+    family: 2499,
   };
+
+  // Weather data for dates
+  const weatherData = {
+    "2026-09-27": {
+      temp: 32,
+      condition: "Sunny",
+      icon: <FaSun className="text-yellow-400" />,
+    },
+    "2026-09-28": {
+      temp: 31,
+      condition: "Partly Cloudy",
+      icon: <FaCloudSun className="text-gray-500" />,
+    },
+    "2026-09-29": {
+      temp: 33,
+      condition: "Sunny",
+      icon: <FaSun className="text-yellow-400" />,
+    },
+    "2026-09-30": {
+      temp: 30,
+      condition: "Cloudy",
+      icon: <FaCloudSun className="text-gray-500" />,
+    },
+  };
+
+  // Special events
+  const specialEvents = [
+    { date: "2026-10-01", event: "Holi Splash Festival", discount: 20 },
+    { date: "2026-10-15", event: "Family Fun Day", discount: 15 },
+  ];
 
   // Get days in month
   const getDaysInMonth = (year, month) => {
     return new Date(year, month + 1, 0).getDate();
   };
 
-  // Get first day of month (0 = Sunday, 1 = Monday, etc.)
+  // Get first day of month
   const getFirstDayOfMonth = (year, month) => {
     return new Date(year, month, 1).getDay();
   };
 
   // Navigate to previous month
   const prevMonth = () => {
-    setCurrentMonth((prev) => {
-      if (prev === 0) {
-        setCurrentYear(currentYear - 1);
-        return 11;
-      }
-      return prev - 1;
-    });
+    if (currentMonth === 0) {
+      setCurrentMonth(11);
+      setCurrentYear(currentYear - 1);
+    } else {
+      setCurrentMonth(currentMonth - 1);
+    }
   };
 
   // Navigate to next month
   const nextMonth = () => {
-    setCurrentMonth((prev) => {
-      if (prev === 11) {
-        setCurrentYear(currentYear + 1);
-        return 0;
-      }
-      return prev + 1;
-    });
+    if (currentMonth === 11) {
+      setCurrentMonth(0);
+      setCurrentYear(currentYear + 1);
+    } else {
+      setCurrentMonth(currentMonth + 1);
+    }
   };
 
   // Check if date is available
@@ -94,12 +163,30 @@ const DateSelectionStep = ({ bookingData, setBookingData, nextStep }) => {
   const getPriceForDate = (dateString) => {
     const date = new Date(dateString);
     const dayOfWeek = date.getDay();
+    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+    const isPeak =
+      dateString.includes("2026-10-") &&
+      parseInt(dateString.split("-")[2]) > 10;
 
-    // Saturday (6) or Sunday (0) are weekends
-    if (dayOfWeek === 0 || dayOfWeek === 6) {
-      return pricingData.weekend;
-    }
+    if (isPeak) return pricingData.peak;
+    if (isWeekend) return pricingData.weekend;
     return pricingData.weekday;
+  };
+
+  // Get special event for date
+  const getSpecialEvent = (dateString) => {
+    return specialEvents.find((event) => event.date === dateString);
+  };
+
+  // Get weather for date
+  const getWeatherForDate = (dateString) => {
+    return (
+      weatherData[dateString] || {
+        temp: 30 + Math.floor(Math.random() * 5),
+        condition: "Sunny",
+        icon: <FaSun className="text-yellow-400" />,
+      }
+    );
   };
 
   // Check if date is today
@@ -114,13 +201,21 @@ const DateSelectionStep = ({ bookingData, setBookingData, nextStep }) => {
 
   // Handle date selection
   const handleDateSelect = (date) => {
-    const dateString = `${currentYear}-${String(currentMonth + 1).padStart(
-      2,
-      "0"
-    )}-${String(date).padStart(2, "0")}`;
+    const dateString = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-${String(date).padStart(2, "0")}`;
     if (isDateAvailable(dateString)) {
       setSelectedDate(dateString);
       setBookingData((prev) => ({ ...prev, date: dateString }));
+
+      // Reset time slot when date changes
+      setSelectedTimeSlot(null);
+    }
+  };
+
+  // Handle time slot selection
+  const handleTimeSlotSelect = (slot) => {
+    if (slot.available) {
+      setSelectedTimeSlot(slot);
+      setBookingData((prev) => ({ ...prev, selectedTime: slot.time }));
     }
   };
 
@@ -130,21 +225,20 @@ const DateSelectionStep = ({ bookingData, setBookingData, nextStep }) => {
     const firstDay = getFirstDayOfMonth(currentYear, currentMonth);
     const days = [];
 
-    // Add empty cells for days before the first day of the month
+    // Add empty cells for days before the first day
     for (let i = 0; i < firstDay; i++) {
       days.push(null);
     }
 
     // Add days of the month
     for (let day = 1; day <= daysInMonth; day++) {
-      const dateString = `${currentYear}-${String(currentMonth + 1).padStart(
-        2,
-        "0"
-      )}-${String(day).padStart(2, "0")}`;
+      const dateString = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
       const dateObj = new Date(currentYear, currentMonth, day);
       const isAvailable = isDateAvailable(dateString);
       const isSelected = selectedDate === dateString;
       const isTodayDate = isToday(dateObj);
+      const specialEvent = getSpecialEvent(dateString);
+      const weather = getWeatherForDate(dateString);
 
       days.push({
         day,
@@ -154,6 +248,8 @@ const DateSelectionStep = ({ bookingData, setBookingData, nextStep }) => {
         today: isTodayDate,
         price: getPriceForDate(dateString),
         dayName: dateObj.toLocaleDateString("en-US", { weekday: "short" }),
+        specialEvent,
+        weather,
       });
     }
 
@@ -177,179 +273,354 @@ const DateSelectionStep = ({ bookingData, setBookingData, nextStep }) => {
   ];
 
   const handleContinue = () => {
-    if (selectedDate) {
+    if (selectedDate && selectedTimeSlot) {
+      setBookingData((prev) => ({
+        ...prev,
+        date: selectedDate,
+        selectedTime: selectedTimeSlot.time,
+        price: getPriceForDate(selectedDate),
+      }));
       nextStep();
     }
   };
 
+  // Calculate savings if special event
+  const selectedDateEvent = selectedDate ? getSpecialEvent(selectedDate) : null;
+  const selectedDatePrice = selectedDate ? getPriceForDate(selectedDate) : 0;
+  const savings = selectedDateEvent
+    ? (selectedDatePrice * selectedDateEvent.discount) / 100
+    : 0;
+
   return (
-    <div className="premium-card p-8 md:p-12 border-none">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-12">
-        <div>
-          <span className="bg-aqua-100 text-aqua-600 text-[9px] font-bold text-gray-900 uppercase tracking-widest px-5 py-2 rounded-full shadow-sm mb-3 inline-block">Initial Configuration</span>
-          <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 tracking-tight font-display">
-            Strategic Date
-          </h2>
-          <p className="text-gray-400 font-medium text-sm mt-2">Select your ideal splash window for the ultimate adventure.</p>
-        </div>
-        <div className="w-20 h-20 bg-premium-gradient rounded-[28px] flex items-center justify-center text-white text-3xl shadow-xl shadow-aqua-500/20">
-          <FaCalendarAlt />
-        </div>
-      </div>
-
-      {/* Month Navigation */}
-      <div className="flex items-center justify-between mb-10 bg-gray-50/50 p-3 rounded-[28px] border border-gray-100/50">
-        <button
-          onClick={prevMonth}
-          className="w-14 h-14 rounded-2xl bg-white shadow-soft text-gray-400 hover:text-aqua-600 border border-transparent hover:border-gray-100 transition-standard flex items-center justify-center group active:scale-95"
-        >
-          <FaArrowLeft className="text-xs group-hover:-translate-x-0.5 transition-transform" />
-        </button>
-
-        <h3 className="text-2xl font-bold text-gray-900 tracking-tight font-display">
-          {monthNames[currentMonth]} {currentYear}
-        </h3>
-
-        <button
-          onClick={nextMonth}
-          className="w-14 h-14 rounded-2xl bg-white shadow-soft text-gray-400 hover:text-aqua-600 border border-transparent hover:border-gray-100 transition-standard flex items-center justify-center group active:scale-95"
-        >
-          <FaArrowRight className="text-xs group-hover:translate-x-0.5 transition-transform" />
-        </button>
-      </div>
-
-      {/* Calendar Grid */}
-      <div className="mb-10">
-        {/* Day Headers */}
-        <div className="grid grid-cols-7 gap-3 mb-6">
-          {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
-            <div
-              key={day}
-              className="text-center text-[9px] font-bold text-gray-500 py-2 uppercase tracking-wider"
-            >
-              {day}
-            </div>
-          ))}
+    <div className="bg-white rounded-4xl shadow-2xl overflow-hidden">
+      {/* Header with Wave Pattern */}
+      <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-cyan-600 p-8 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-10">
+          <svg
+            className="w-full h-full"
+            viewBox="0 0 100 100"
+            preserveAspectRatio="none"
+          >
+            <path
+              d="M0,30 Q25,20 50,30 T100,30"
+              stroke="white"
+              fill="none"
+              strokeWidth="2"
+            />
+            <path
+              d="M0,50 Q25,40 50,50 T100,50"
+              stroke="white"
+              fill="none"
+              strokeWidth="2"
+            />
+            <path
+              d="M0,70 Q25,60 50,70 T100,70"
+              stroke="white"
+              fill="none"
+              strokeWidth="2"
+            />
+          </svg>
         </div>
 
-        {/* Calendar Days */}
-        <div className="grid grid-cols-7 gap-3 md:gap-4">
-          {calendarDays.map((day, index) => (
-            <div key={index} className="min-h-[90px] md:min-h-[110px]">
-              {day ? (
-                <button
-                  onClick={() => handleDateSelect(day.day)}
-                  disabled={!day.available}
-                  className={`w-full h-full p-4 rounded-[24px] border-2 text-center transition-all duration-500 flex flex-col items-center justify-center relative overflow-hidden group ${
-                    day.selected
-                      ? "border-aqua-500 bg-white shadow-premium ring-4 ring-aqua-500/10"
-                      : day.today
-                      ? "border-blue-200 bg-blue-50/30"
-                      : "border-gray-50 bg-white hover:border-aqua-100 hover:shadow-soft"
-                  } ${
-                    !day.available
-                      ? "opacity-20 cursor-not-allowed grayscale"
-                      : "cursor-pointer"
-                  }`}
-                >
-                  <div className="flex items-center justify-center w-full mb-2">
-                    {day.today && (
-                      <span className="text-[7px] bg-blue-500 text-white px-2 py-0.5 rounded-full font-bold uppercase tracking-wider shadow-sm">
-                        Today
-                      </span>
-                    )}
-                  </div>
-
-                  <div
-                    className={`text-2xl md:text-3xl font-bold mb-1 font-display transition-colors ${
-                      day.selected
-                        ? "text-aqua-600"
-                        : day.available
-                        ? "text-gray-900"
-                        : "text-gray-500"
-                    }`}
-                  >
-                    {day.day}
-                  </div>
-
-                  {day.available ? (
-                    <div className={`text-[9px] font-bold uppercase tracking-wider ${
-                      day.selected ? "text-aqua-500" : "text-gray-500"
-                    }`}>
-                      ₹{day.price}
-                    </div>
-                  ) : (
-                    <div className="text-[8px] text-red-400 font-bold uppercase tracking-wider">Full</div>
-                  )}
-
-                  {day.selected && (
-                    <div className="absolute top-0 right-0 w-8 h-8 bg-aqua-500 rounded-bl-2xl flex items-center justify-center text-white text-[10px] shadow-sm animate-in zoom-in duration-300">
-                      <FaCheck />
-                    </div>
-                  )}
-                </button>
-              ) : (
-                <div className="w-full h-full p-2 opacity-0"></div>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Selected Date Info Banner */}
-      {selectedDate && (
-        <div className="bg-aqua-50/50 border border-aqua-100 rounded-[32px] p-8 mb-10 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden group">
-          <div className="absolute top-0 left-0 w-64 h-64 bg-aqua-100/30 rounded-full blur-3xl -ml-32 -mt-32 group-hover:bg-aqua-200/40 transition-colors"></div>
-          
-          <div className="flex items-center gap-6 relative z-10">
-            <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-soft text-aqua-600 text-2xl border border-aqua-100">
-               <FaCalendarAlt />
+        <div className="relative z-10 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="w-16 h-16 bg-white/20 backdrop-blur-xl rounded-2xl flex items-center justify-center border border-white/30">
+              <FaCalendarAlt className="text-3xl text-white" />
             </div>
             <div>
-              <p className="text-[9px] font-bold text-aqua-500 uppercase tracking-widest mb-2 leading-none">Your Target Window</p>
-              <p className="text-gray-900 font-bold text-xl lg:text-2xl font-display tracking-tight">
-                {new Date(selectedDate).toLocaleDateString("en-US", {
-                  weekday: "long",
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
-              </p>
+              <span className="text-white/80 text-sm mb-1 block">
+                Step 1 of 4
+              </span>
+              <h2 className="text-3xl font-bold text-white">
+                Choose Your Date
+              </h2>
             </div>
           </div>
-          <div className="text-right bg-white px-8 py-5 rounded-[24px] border border-aqua-100 shadow-soft relative z-10 min-w-[150px]">
-            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-1">Starting Point</p>
-            <p className="text-3xl font-bold text-gray-900 tracking-tighter">
-              ₹{getPriceForDate(selectedDate)}
-            </p>
+
+          {/* Quick Stats */}
+          <div className="hidden md:flex items-center gap-4">
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl px-4 py-2">
+              <span className="text-white/80 text-xs block">Available</span>
+              <span className="text-white font-bold">
+                {availableDates.length} Dates
+              </span>
+            </div>
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl px-4 py-2">
+              <span className="text-white/80 text-xs block">Best Price</span>
+              <span className="text-white font-bold">
+                ₹{pricingData.weekday}
+              </span>
+            </div>
           </div>
         </div>
-      )}
-
-      {/* Park Info Pills */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-        {[
-          { icon: <FaClock />, label: "Hours: 10:00 — 20:00" },
-          { icon: <FaUsers />, label: "Capacity Optimized" },
-          { icon: <FaMapMarkerAlt />, label: "Lonavala High-Hill" },
-        ].map((item, i) => (
-          <div key={i} className="flex items-center gap-4 bg-white p-5 rounded-[24px] border border-gray-100 shadow-inner-sm group hover:border-aqua-100 transition-colors">
-            <div className="w-10 h-10 bg-aqua-50 rounded-xl flex items-center justify-center text-aqua-600 text-xs shadow-sm group-hover:bg-aqua-100 transition-colors">
-              {item.icon}
-            </div>
-            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">{item.label}</span>
-          </div>
-        ))}
       </div>
 
-      <Button
-        onClick={handleContinue}
-        disabled={!selectedDate}
-        className="w-full !rounded-[28px] !py-6 text-[11px] tracking-widest uppercase shadow-2xl"
-      >
-        Continue to Tickets
-        <FaArrowRight className="text-xs ml-2" />
-      </Button>
+      <div className="p-8 md:p-10">
+        {/* Month Navigation */}
+        <div className="flex items-center justify-between mb-8">
+          <button
+            onClick={prevMonth}
+            className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center text-gray-600 hover:bg-blue-600 hover:text-white transition-all"
+          >
+            <FaChevronLeft />
+          </button>
+
+          <h3 className="text-2xl font-bold text-gray-900">
+            {monthNames[currentMonth]} {currentYear}
+          </h3>
+
+          <button
+            onClick={nextMonth}
+            className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center text-gray-600 hover:bg-blue-600 hover:text-white transition-all"
+          >
+            <FaChevronRight />
+          </button>
+        </div>
+
+        {/* Calendar Grid */}
+        <div className="mb-8">
+          {/* Day Headers */}
+          <div className="grid grid-cols-7 gap-2 mb-2">
+            {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+              <div
+                key={day}
+                className="text-center text-xs font-bold text-gray-500 py-2"
+              >
+                {day}
+              </div>
+            ))}
+          </div>
+
+          {/* Calendar Days */}
+          <div className="grid grid-cols-7 gap-2">
+            {calendarDays.map((day, index) => (
+              <div key={index}>
+                {day ? (
+                  <button
+                    onClick={() => handleDateSelect(day.day)}
+                    disabled={!day.available}
+                    className={`w-full p-3 rounded-xl border-2 transition-all relative ${
+                      day.selected
+                        ? "border-blue-600 bg-blue-50"
+                        : day.available
+                          ? "border-gray-200 hover:border-blue-400 hover:shadow-md"
+                          : "border-gray-100 opacity-40 cursor-not-allowed"
+                    }`}
+                  >
+                    {/* Date Number */}
+                    <div className="text-center">
+                      <span
+                        className={`text-lg font-bold ${
+                          day.selected ? "text-blue-600" : "text-gray-900"
+                        }`}
+                      >
+                        {day.day}
+                      </span>
+                    </div>
+
+                    {/* Weather Icon */}
+                    <div className="flex justify-center mt-1">
+                      {day.weather.icon}
+                    </div>
+
+                    {/* Price */}
+                    {day.available && (
+                      <div
+                        className={`text-xs font-bold mt-1 ${
+                          day.selected ? "text-blue-600" : "text-gray-500"
+                        }`}
+                      >
+                        ₹{day.price}
+                      </div>
+                    )}
+
+                    {/* Special Event Badge */}
+                    {day.specialEvent && (
+                      <div className="absolute -top-2 -right-2 bg-gradient-to-r from-orange-500 to-red-500 text-white text-[8px] font-bold px-2 py-1 rounded-full shadow-lg">
+                        -{day.specialEvent.discount}%
+                      </div>
+                    )}
+
+                    {/* Today Indicator */}
+                    {day.today && (
+                      <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2">
+                        <span className="text-[8px] bg-blue-500 text-white px-1.5 py-0.5 rounded-full">
+                          Today
+                        </span>
+                      </div>
+                    )}
+                  </button>
+                ) : (
+                  <div className="w-full p-3"></div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Time Slots Section */}
+        {selectedDate && (
+          <div className="mb-8 animate-in slide-in-from-bottom-4 duration-500">
+            <h3 className="text-lg font-bold text-gray-900 mb-4">
+              Select Time Slot
+            </h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {timeSlots.map((slot) => (
+                <button
+                  key={slot.id}
+                  onClick={() => handleTimeSlotSelect(slot)}
+                  disabled={!slot.available}
+                  className={`p-4 rounded-2xl border-2 transition-all ${
+                    selectedTimeSlot?.id === slot.id
+                      ? "border-blue-600 bg-blue-50"
+                      : slot.available
+                        ? "border-gray-200 hover:border-blue-400"
+                        : "border-gray-100 opacity-40 cursor-not-allowed"
+                  }`}
+                >
+                  <div className="flex flex-col items-center">
+                    <div
+                      className={`text-2xl mb-2 ${
+                        selectedTimeSlot?.id === slot.id
+                          ? "text-blue-600"
+                          : "text-gray-600"
+                      }`}
+                    >
+                      {slot.icon}
+                    </div>
+                    <span className="text-xs font-bold text-gray-900">
+                      {slot.label}
+                    </span>
+                    <span className="text-xs text-gray-500 mt-1">
+                      {slot.time}
+                    </span>
+                    <span
+                      className={`text-[10px] font-bold mt-2 px-2 py-1 rounded-full ${
+                        slot.available
+                          ? slot.capacity.includes("85")
+                            ? "bg-orange-100 text-orange-600"
+                            : "bg-green-100 text-green-600"
+                          : "bg-red-100 text-red-600"
+                      }`}
+                    >
+                      {slot.capacity}
+                    </span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Selected Date Summary */}
+        {selectedDate && selectedTimeSlot && (
+          <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-2xl p-6 mb-8 animate-in slide-in-from-bottom-4 duration-500">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 bg-white rounded-xl flex items-center justify-center shadow-md">
+                  <FaCalendarAlt className="text-2xl text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 mb-1">Your Selection</p>
+                  <p className="font-bold text-gray-900">
+                    {new Date(selectedDate).toLocaleDateString("en-US", {
+                      weekday: "long",
+                      month: "long",
+                      day: "numeric",
+                      year: "numeric",
+                    })}
+                  </p>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {selectedTimeSlot.time}
+                  </p>
+
+                  {/* Special Event Banner */}
+                  {selectedDateEvent && (
+                    <div className="flex items-center gap-2 mt-2">
+                      <FaGift className="text-orange-500" />
+                      <span className="text-xs font-bold text-orange-600">
+                        {selectedDateEvent.event} • Save{" "}
+                        {selectedDateEvent.discount}%
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="text-right">
+                <p className="text-xs text-gray-500 mb-1">Total</p>
+                <p className="text-3xl font-bold text-blue-600">
+                  ₹{selectedDatePrice}
+                </p>
+                {savings > 0 && (
+                  <p className="text-xs text-green-600">You save ₹{savings}</p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Park Information */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl">
+            <GiPalmTree className="text-2xl text-green-600" />
+            <div>
+              <div className="text-xs text-gray-500">Location</div>
+              <div className="font-bold text-gray-900">AquaZen Paradise</div>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl">
+            <FaClock className="text-2xl text-blue-600" />
+            <div>
+              <div className="text-xs text-gray-500">Operating Hours</div>
+              <div className="font-bold text-gray-900">10:00 AM - 8:00 PM</div>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl">
+            <FaUsers className="text-2xl text-purple-600" />
+            <div>
+              <div className="text-xs text-gray-500">Current Capacity</div>
+              <div className="font-bold text-gray-900">65% Full</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Pricing Legend */}
+        <div className="flex flex-wrap items-center gap-4 mb-8 text-xs">
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-blue-600 rounded"></div>
+            <span className="text-gray-600">Selected</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 border-2 border-blue-400 rounded"></div>
+            <span className="text-gray-600">Available</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-gray-200 rounded"></div>
+            <span className="text-gray-600">Unavailable</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-orange-500 rounded"></div>
+            <span className="text-gray-600">Special Event</span>
+          </div>
+        </div>
+
+        {/* Continue Button */}
+        <Button
+          onClick={handleContinue}
+          disabled={!selectedDate || !selectedTimeSlot}
+          className="w-full !py-5 !rounded-2xl text-base font-bold bg-gradient-to-r from-blue-600 to-cyan-500 hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Continue to Ticket Selection
+          <FaArrowRight className="ml-2" />
+        </Button>
+
+        {/* Guarantee Text */}
+        <p className="text-center text-xs text-gray-400 mt-4 flex items-center justify-center gap-2">
+          <FaCheckCircle className="text-green-500" />
+          Free cancellation up to 24 hours before visit
+        </p>
+      </div>
     </div>
   );
 };

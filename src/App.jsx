@@ -56,16 +56,15 @@ function App() {
             <Route path="/admin/dashboard" element={<Dashboard />} />
             <Route path="/admin/parks" element={<ParksList />} />
             <Route path="/admin/parks/add" element={<AddPark />} />
-            
+
             <Route path="/admin/meals" element={<MealsList />} />
             <Route path="/admin/meals/add" element={<AddMeal />} />
 
             <Route path="/admin/dates" element={<AddAvailableDates />} />
             <Route path="/admin/coupons" element={<ManageCoupons />} />
-            
+
             <Route path="/admin/bookings" element={<BookingList />} />
-            <Route path="/admin/bookings/:id" element={<Dashboard />} /> {/* Placeholder */}
-            
+
             <Route path="/admin/leads" element={<LeadList />} />
           </Route>
 

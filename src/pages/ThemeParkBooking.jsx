@@ -5,27 +5,15 @@ import DateSelectionStep from "../components/DateSelectionStep";
 import MealSelectionStep from "../components/MealSelectionStep";
 import TicketSelectionStep from "../components/TicketSelectionStep";
 import PaymentStep from "../components/PaymentStep";
-import { 
-  FaCalendarAlt, 
-  FaCheck, 
-  FaChevronDown, 
-  FaChevronUp, 
-  FaClock, 
-  FaCreditCard, 
-  FaEnvelope, 
-  FaExclamationCircle, 
-  FaLock, 
-  FaMapMarkerAlt, 
-  FaMobileAlt, 
-  FaPhone, 
-  FaShieldAlt, 
-  FaSun, 
-  FaTicketAlt, 
-  FaUsers, 
-  FaUtensils, 
-  FaWater, 
-  FaWhatsapp,
-  FaCheckCircle
+import {
+  FaCalendarAlt,
+  FaCheck,
+  FaCreditCard,
+  FaMapMarkerAlt,
+  FaSun,
+  FaTicketAlt,
+  FaUtensils,
+  FaWater,
 } from "react-icons/fa";
 
 const ThemeParkBooking = () => {
@@ -40,7 +28,7 @@ const ThemeParkBooking = () => {
     selectedDate: null,
     selectedTime: null,
     visitors: 2,
-    addOns: []
+    addOns: [],
   });
 
   const [showSummary, setShowSummary] = useState(true);
@@ -49,10 +37,30 @@ const ThemeParkBooking = () => {
   const [promoError, setPromoError] = useState("");
 
   const steps = [
-    { number: 1, title: "Select Date", icon: FaCalendarAlt, description: "Choose your visit date" },
-    { number: 2, title: "Choose Tickets", icon: FaTicketAlt, description: "Select ticket types" },
-    { number: 3, title: "Add Meals", icon: FaUtensils, description: "Customize dining" },
-    { number: 4, title: "Payment", icon: FaCreditCard, description: "Secure checkout" },
+    {
+      number: 1,
+      title: "Select Date",
+      icon: FaCalendarAlt,
+      description: "Choose your visit date",
+    },
+    {
+      number: 2,
+      title: "Choose Tickets",
+      icon: FaTicketAlt,
+      description: "Select ticket types",
+    },
+    {
+      number: 3,
+      title: "Add Meals",
+      icon: FaUtensils,
+      description: "Customize dining",
+    },
+    {
+      number: 4,
+      title: "Payment",
+      icon: FaCreditCard,
+      description: "Secure checkout",
+    },
   ];
 
   const handlePromoApply = () => {
@@ -68,16 +76,24 @@ const ThemeParkBooking = () => {
   const calculateTotal = () => {
     const basePrice = 1296.82;
     const ticketTotal = basePrice * bookingData.visitors;
-    const mealTotal = bookingData.meals.reduce((sum, meal) => sum + (meal.price || 0), 0);
-    const addOnTotal = bookingData.addOns.reduce((sum, addon) => sum + (addon.price || 0), 0);
+    const mealTotal = bookingData.meals.reduce(
+      (sum, meal) => sum + (meal.price || 0),
+      0,
+    );
+    const addOnTotal = bookingData.addOns.reduce(
+      (sum, addon) => sum + (addon.price || 0),
+      0,
+    );
     const taxes = 499;
-    const discount = promoApplied ? 0.2 * (ticketTotal + mealTotal + addOnTotal) : 0;
-    
+    const discount = promoApplied
+      ? 0.2 * (ticketTotal + mealTotal + addOnTotal)
+      : 0;
+
     return {
       subtotal: ticketTotal + mealTotal + addOnTotal,
       taxes,
       discount,
-      total: ticketTotal + mealTotal + addOnTotal + taxes - discount
+      total: ticketTotal + mealTotal + addOnTotal + taxes - discount,
     };
   };
 
@@ -135,11 +151,20 @@ const ThemeParkBooking = () => {
       {/* Hero Header */}
       <section className="relative bg-gradient-to-r from-blue-600 to-cyan-600 text-white overflow-hidden">
         <div className="absolute inset-0 opacity-10">
-          <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-            <path d="M0,50 Q25,30 50,50 T100,50" stroke="white" fill="none" strokeWidth="2" />
+          <svg
+            className="w-full h-full"
+            viewBox="0 0 100 100"
+            preserveAspectRatio="none"
+          >
+            <path
+              d="M0,50 Q25,30 50,50 T100,50"
+              stroke="white"
+              fill="none"
+              strokeWidth="2"
+            />
           </svg>
         </div>
-        
+
         <div className="max-w-7xl mx-auto px-6 py-12">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
             <div className="space-y-4">
@@ -147,7 +172,7 @@ const ThemeParkBooking = () => {
                 <FaWater className="text-yellow-300" />
                 Secure Your Splash Adventure
               </div>
-              
+
               <h1 className="text-4xl lg:text-5xl font-black leading-tight">
                 Complete Your
                 <span className="block text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-amber-300">
@@ -164,7 +189,9 @@ const ThemeParkBooking = () => {
                 </div>
                 <div>
                   <div className="text-sm opacity-80">Selected Park</div>
-                  <div className="text-xl font-bold">{bookingData.parkLocation}</div>
+                  <div className="text-xl font-bold">
+                    {bookingData.parkLocation}
+                  </div>
                   <div className="flex items-center gap-2 mt-1 text-sm">
                     <FaSun className="text-yellow-300" />
                     <span>{bookingData.weather}</span>
@@ -178,7 +205,10 @@ const ThemeParkBooking = () => {
         {/* Wave Divider */}
         <div className="absolute bottom-0 left-0 right-0">
           <svg viewBox="0 0 1440 60" className="w-full h-auto">
-            <path fill="white" d="M0,32L48,37.3C96,43,192,53,288,53.3C384,54,480,44,576,37.3C672,31,768,27,864,32C960,37,1056,51,1152,53.3C1248,56,1344,48,1392,44L1440,40L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
+            <path
+              fill="white"
+              d="M0,32L48,37.3C96,43,192,53,288,53.3C384,54,480,44,576,37.3C672,31,768,27,864,32C960,37,1056,51,1152,53.3C1248,56,1344,48,1392,44L1440,40L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"
+            ></path>
           </svg>
         </div>
       </section>
@@ -196,8 +226,8 @@ const ThemeParkBooking = () => {
                         currentStep > step.number
                           ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white"
                           : currentStep === step.number
-                          ? "bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-lg shadow-blue-500/30"
-                          : "bg-gray-100 text-gray-400"
+                            ? "bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-lg shadow-blue-500/30"
+                            : "bg-gray-100 text-gray-400"
                       }`}
                     >
                       {currentStep > step.number ? (
@@ -210,9 +240,13 @@ const ThemeParkBooking = () => {
                       <div className="text-xs font-bold text-gray-400 uppercase tracking-wider">
                         Step {step.number}
                       </div>
-                      <div className={`text-sm font-bold ${
-                        currentStep >= step.number ? "text-gray-900" : "text-gray-400"
-                      }`}>
+                      <div
+                        className={`text-sm font-bold ${
+                          currentStep >= step.number
+                            ? "text-gray-900"
+                            : "text-gray-400"
+                        }`}
+                      >
                         {step.title}
                       </div>
                     </div>
@@ -237,7 +271,9 @@ const ThemeParkBooking = () => {
       <div className="max-w-7xl mx-auto px-6 py-8">
         <div className="grid lg:grid-cols-12 gap-8">
           {/* Left Column - Step Content */}
-          <div className={`${showSummary ? 'lg:col-span-12' : 'lg:col-span-12'} transition-all duration-300`}>
+          <div
+            className={`${showSummary ? "lg:col-span-12" : "lg:col-span-12"} transition-all duration-300`}
+          >
             <div className="bg-white rounded-3xl shadow-xl p-6 md:p-8">
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                 {renderStepContent()}

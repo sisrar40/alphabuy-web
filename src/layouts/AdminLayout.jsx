@@ -1,112 +1,163 @@
-import React, { useState } from 'react';
-import { Link, useLocation, Outlet, useNavigate } from 'react-router-dom';
-import { 
-  FaTachometerAlt, 
-  FaMapMarkedAlt, 
-  FaUtensils, 
-  FaCalendarAlt, 
-  FaTicketAlt, 
-  FaBook, 
-  FaHeadset, 
-  FaSignOutAlt, 
-  FaBars, 
+import React, { useState } from "react";
+import { Link, useLocation, Outlet, useNavigate } from "react-router-dom";
+import {
+  FaTachometerAlt,
+  FaMapMarkedAlt,
+  FaUtensils,
+  FaCalendarAlt,
+  FaTicketAlt,
+  FaBook,
+  FaHeadset,
+  FaSignOutAlt,
+  FaBars,
   FaUserCircle,
-  FaBell
-} from 'react-icons/fa';
-import { useDispatch, useSelector } from 'react-redux';
-import { logout } from '../features/auth/authSlice';
+  FaBell,
+  FaWater,
+  FaUsers,
+  FaCog,
+  FaChartLine,
+  FaCreditCard,
+  FaPercent,
+} from "react-icons/fa";
+import { GiSpeedBoat } from "react-icons/gi";
+import { useDispatch } from "react-redux";
+import { logout } from "../features/auth/authSlice";
 
 const AdminLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [showNotifications, setShowNotifications] = useState(false);
   const location = useLocation();
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const handleLogout = () => {
     dispatch(logout());
-    navigate('/admin/login');
+    navigate("/admin/login");
   };
+
+  // Mock notifications
+  const notifications = [
+    { id: 1, message: "New booking received", time: "2 min ago", read: false },
+    { id: 2, message: "Low inventory alert", time: "15 min ago", read: false },
+    {
+      id: 3,
+      message: "New user registrations",
+      time: "1 hour ago",
+      read: true,
+    },
+  ];
+
+  const unreadCount = notifications.filter((n) => !n.read).length;
 
   const menuGroups = [
     {
-      label: 'Main Control',
+      label: "MAIN CONTROL",
       items: [
-        { name: 'Analytics', path: '/admin/dashboard', icon: <FaTachometerAlt /> },
-        { name: 'Water Parks', path: '/admin/parks', icon: <FaMapMarkedAlt /> },
-        { name: 'Meal Plans', path: '/admin/meals', icon: <FaUtensils /> },
-        { name: 'Inventory', path: '/admin/dates', icon: <FaCalendarAlt /> },
-      ]
+        {
+          name: "Analytics",
+          path: "/admin/dashboard",
+          icon: <FaTachometerAlt />,
+        },
+        { name: "Water Parks", path: "/admin/parks", icon: <FaMapMarkedAlt /> },
+        { name: "Meal Plans", path: "/admin/meals", icon: <FaUtensils /> },
+        {
+          name: "Inventory",
+          path: "/admin/dates",
+          icon: <FaCalendarAlt />,
+        },
+        { name: "Rides", path: "/admin/rides", icon: <GiSpeedBoat /> },
+      ],
     },
     {
-      label: 'Customer Relations',
+      label: "CUSTOMER RELATIONS",
       items: [
-        { name: 'Promotions', path: '/admin/coupons', icon: <FaTicketAlt /> },
-        { name: 'Bookings', path: '/admin/bookings', icon: <FaBook /> },
-        { name: 'User Leads', path: '/admin/leads', icon: <FaHeadset /> },
-      ]
-    }
+        { name: "Promotions", path: "/admin/coupons", icon: <FaTicketAlt /> },
+        { name: "Bookings", path: "/admin/bookings", icon: <FaBook /> },
+        { name: "User Leads", path: "/admin/leads", icon: <FaHeadset /> },
+        { name: "Reviews", path: "/admin/reviews", icon: <FaUsers /> },
+      ],
+    },
+    {
+      label: "FINANCIALS",
+      items: [
+        { name: "Revenue", path: "/admin/revenue", icon: <FaChartLine /> },
+        {
+          name: "Transactions",
+          path: "/admin/transactions",
+          icon: <FaCreditCard />,
+        },
+        { name: "Tax Reports", path: "/admin/taxes", icon: <FaPercent /> },
+      ],
+    },
+    {
+      label: "SETTINGS",
+      items: [{ name: "Settings", path: "/admin/settings", icon: <FaCog /> }],
+    },
   ];
 
   return (
-    <div className="flex h-screen bg-[#f8f9fa] overflow-hidden font-sans">
-      {/* Sidebar - Premium Minimalist Profile */}
-      <aside 
+    <div className="flex h-screen bg-gray-50 overflow-hidden">
+      {/* Sidebar */}
+      <aside
         className={`${
-          isSidebarOpen ? 'w-80' : 'w-28'
-        } bg-white border-r border-gray-100 transition-all duration-700 ease-in-out flex flex-col z-50 relative`}
+          isSidebarOpen ? "w-72" : "w-20"
+        } bg-white border-r border-gray-200 transition-all duration-300 flex flex-col z-50 shadow-sm`}
       >
-        <div className="h-28 flex items-center justify-center px-8 border-b border-gray-50/50 overflow-hidden bg-white/50 backdrop-blur-sm">
-           <div className="flex items-center gap-4 group cursor-pointer">
-              <div className="w-12 h-12 bg-premium-gradient rounded-[20px] flex items-center justify-center text-white text-2xl font-bold shadow-xl shadow-aqua-500/30 transition-all duration-500 group-hover:scale-110 group-hover:rotate-6">
-                A
+        {/* Logo Area */}
+        <div className="h-20 flex items-center justify-center px-4 border-b border-gray-100">
+          <div
+            className="flex items-center gap-3 cursor-pointer"
+            onClick={() => navigate("/admin/dashboard")}
+          >
+            <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-xl flex items-center justify-center text-white text-lg font-bold shadow-md">
+              W
+            </div>
+            {isSidebarOpen && (
+              <div className="flex flex-col">
+                <span className="font-bold text-gray-900 text-lg leading-none">
+                  WATERPARKS
+                </span>
+                <span className="text-[8px] text-blue-500 uppercase tracking-wider mt-0.5">
+                  Admin Panel
+                </span>
               </div>
-              {isSidebarOpen && (
-                <div className="flex flex-col animate-in fade-in slide-in-from-left-4 duration-700">
-                  <span className="font-bold text-gray-900 tracking-tight text-2xl leading-none">ALPHABUY</span>
-                  <p className="font-bold text-[9px] text-aqua-500 uppercase tracking-widest mt-1.5 opacity-80">Console Layer</p>
-                </div>
-              )}
-           </div>
+            )}
+          </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto py-10 custom-scrollbar">
+        {/* Menu Items */}
+        <div className="flex-1 overflow-y-auto py-6 px-3">
           {menuGroups.map((group, idx) => (
-            <div key={idx} className="mb-10">
+            <div key={idx} className="mb-6">
               {isSidebarOpen && (
-                <p className="px-10 mb-6 text-[9px] font-bold text-gray-400 uppercase tracking-widest opacity-80">
+                <p className="px-3 mb-2 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
                   {group.label}
                 </p>
               )}
-              <div className="px-4 space-y-2.5">
+
+              <div className="space-y-1">
                 {group.items.map((item) => {
-                  const isActive = location.pathname === item.path || location.pathname.startsWith(`${item.path}/`);
+                  const isActive = location.pathname === item.path;
+
                   return (
                     <Link
                       key={item.name}
                       to={item.path}
                       className={`
-                        flex items-center px-6 py-4 rounded-[24px] transition-all duration-500 font-bold text-[11px] uppercase tracking-widest relative group
-                        ${isActive 
-                          ? 'bg-white shadow-premium text-gray-900 border border-gray-50' 
-                          : 'text-gray-400 hover:bg-gray-50/50 hover:text-aqua-600'}
+                        flex items-center px-3 py-2.5 rounded-xl transition-all duration-200 text-sm
+                        ${
+                          isActive
+                            ? "bg-blue-600 text-white shadow-md"
+                            : "text-gray-600 hover:bg-gray-100"
+                        }
+                        ${!isSidebarOpen && "justify-center"}
                       `}
                     >
-                      {isActive && (
-                        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-6 bg-premium-gradient rounded-r-full shadow-lg shadow-aqua-500/50"></div>
-                      )}
-                      
-                      <div className={`text-2xl transition-all duration-500 ${isActive ? 'text-aqua-500 scale-110' : 'text-gray-400 group-hover:text-aqua-400 group-hover:scale-110'} ${isSidebarOpen ? 'mr-5' : 'mx-auto'}`}>
+                      <div className={`text-lg ${isSidebarOpen ? "mr-3" : ""}`}>
                         {item.icon}
                       </div>
-                      
                       {isSidebarOpen && (
-                        <span className={`transition-all duration-500 ${isActive ? 'translate-x-1' : 'group-hover:translate-x-1'}`}>
-                          {item.name}
-                        </span>
-                      )}
-                      
-                      {!isSidebarOpen && isActive && (
-                         <div className="absolute -right-2 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-aqua-500 rounded-full shadow-lg"></div>
+                        <span className="font-medium">{item.name}</span>
                       )}
                     </Link>
                   );
@@ -116,75 +167,106 @@ const AdminLayout = () => {
           ))}
         </div>
 
-        <div className="p-8 border-t border-gray-50/50 bg-white/50 backdrop-blur-sm">
-          <button 
+        {/* Logout Button */}
+        <div className="p-4 border-t border-gray-100">
+          <button
             onClick={handleLogout}
             className={`
-              flex items-center w-full px-6 py-4 rounded-[24px] text-gray-400 font-bold text-[11px] uppercase tracking-widest hover:bg-red-50 hover:text-red-500 transition-all duration-500 group
-              ${!isSidebarOpen && 'justify-center'}
+              flex items-center w-full px-3 py-2.5 rounded-xl text-gray-600 hover:bg-red-50 hover:text-red-600 transition-all duration-200
+              ${!isSidebarOpen && "justify-center"}
             `}
           >
-            <div className={`text-2xl transition-all duration-500 group-hover:rotate-12 ${isSidebarOpen ? 'mr-5' : ''}`}>
+            <div className={`text-lg ${isSidebarOpen ? "mr-3" : ""}`}>
               <FaSignOutAlt />
             </div>
-            {isSidebarOpen && <span>Secure Exit</span>}
+            {isSidebarOpen && (
+              <span className="text-sm font-medium">Logout</span>
+            )}
           </button>
         </div>
       </aside>
 
-      {/* Main Execution Area */}
-      <div className="flex-1 flex flex-col relative overflow-hidden">
-        {/* Top Intelligence Bar */}
-        <header className="h-28 bg-white/60 backdrop-blur-xl border-b border-gray-100 flex items-center justify-between px-12 z-40">
-          <div className="flex items-center gap-8">
-            <button 
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Top Bar */}
+        <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 z-40">
+          <div className="flex items-center gap-4">
+            <button
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="w-12 h-12 rounded-[18px] text-gray-400 bg-white border border-gray-50 flex items-center justify-center hover:text-aqua-600 hover:shadow-premium transition-all duration-500 shadow-soft active:scale-95 translate-y-[-2px]"
+              className="w-9 h-9 rounded-lg bg-gray-100 text-gray-600 flex items-center justify-center hover:bg-blue-600 hover:text-white transition-all"
             >
-              <FaBars className="text-xl" />
+              <FaBars />
             </button>
-            <div className="h-10 w-[1px] bg-gray-100 hidden md:block"></div>
-            <div className="hidden md:flex flex-col">
-               <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none mb-1.5">Operational Node</span>
-               <h2 className="font-bold text-2xl text-gray-900 tracking-tight font-display leading-none">
-                 {location.pathname.split('/').pop().toUpperCase()}
-               </h2>
+
+            <div className="h-6 w-px bg-gray-200"></div>
+
+            <div>
+              <span className="text-sm font-medium text-gray-500">Page /</span>
+              <span className="text-sm font-bold text-gray-900 ml-1">
+                {location.pathname.split("/").pop()?.toUpperCase() ||
+                  "DASHBOARD"}
+              </span>
             </div>
           </div>
 
-          <div className="flex items-center gap-8">
-            <div className="flex items-center gap-4">
-              <button className="w-12 h-12 relative rounded-[18px] bg-white border border-gray-50 flex items-center justify-center text-gray-400 hover:text-aqua-600 hover:shadow-premium transition-all duration-500 shadow-soft group">
-                <FaBell className="text-xl group-hover:animate-swing" />
-                <span className="absolute top-3.5 right-3.5 w-2 h-2 bg-aqua-500 rounded-full border-2 border-white shadow-sm animate-pulse"></span>
+          <div className="flex items-center gap-3">
+            {/* Notifications */}
+            <div className="relative">
+              <button
+                onClick={() => setShowNotifications(!showNotifications)}
+                className="w-9 h-9 rounded-lg bg-gray-100 text-gray-600 flex items-center justify-center hover:bg-blue-600 hover:text-white transition-all relative"
+              >
+                <FaBell />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[8px] font-bold rounded-full flex items-center justify-center border border-white">
+                    {unreadCount}
+                  </span>
+                )}
               </button>
+
+              {/* Notifications Dropdown */}
+              {showNotifications && (
+                <div className="absolute right-0 top-12 w-80 bg-white rounded-xl shadow-lg border border-gray-200 z-50">
+                  <div className="p-3 border-b border-gray-100">
+                    <h3 className="font-bold text-gray-900">Notifications</h3>
+                  </div>
+                  <div className="max-h-80 overflow-y-auto">
+                    {notifications.map((notification) => (
+                      <div
+                        key={notification.id}
+                        className={`p-3 border-b border-gray-50 hover:bg-gray-50 cursor-pointer ${
+                          !notification.read ? "bg-blue-50" : ""
+                        }`}
+                      >
+                        <p className="text-sm text-gray-900">
+                          {notification.message}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {notification.time}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
-            
-            <div className="h-10 w-[1px] bg-gray-100 hidden sm:block"></div>
-            
-            <div className="hidden sm:flex items-center gap-5 group cursor-pointer">
-              <div className="text-right flex flex-col items-end">
-                <p className="text-sm font-bold text-gray-900 leading-none mb-1.5 tracking-tight group-hover:text-aqua-600 transition-colors">Commander Alpha</p>
-                <div className="flex items-center gap-2">
-                   <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
-                   <p className="text-[9px] font-bold text-gray-500 uppercase tracking-wider leading-none">System Root</p>
-                </div>
+
+            {/* User Menu */}
+            <div className="flex items-center gap-3 pl-2 border-l border-gray-200">
+              <div className="text-right">
+                <p className="text-sm font-bold text-gray-900">Admin User</p>
+                <p className="text-[10px] text-gray-500">Super Admin</p>
               </div>
-              <div className="w-14 h-14 rounded-[24px] bg-white border border-gray-100 p-1 flex items-center justify-center text-gray-400 overflow-hidden shadow-soft transition-all duration-500 group-hover:shadow-premium group-hover:border-aqua-100">
-                <div className="w-full h-full rounded-[20px] bg-gray-50 flex items-center justify-center text-gray-400">
-                   <FaUserCircle className="text-5xl text-gray-400" />
-                </div>
+              <div className="w-9 h-9 rounded-lg bg-gray-200 flex items-center justify-center text-gray-600">
+                <FaUserCircle className="text-2xl" />
               </div>
             </div>
           </div>
         </header>
 
-        {/* Intelligence Content Container */}
-        <main className="flex-1 overflow-y-auto p-12 bg-[#f8f9fa] relative">
-          {/* Subtle Page Background Gradient */}
-          <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-aqua-100/10 rounded-full blur-[100px] -mr-32 -mt-32"></div>
-          
-          <div className="max-w-7xl mx-auto relative z-10 animate-in fade-in slide-in-from-bottom-6 duration-1000">
+        {/* Main Content */}
+        <main className="flex-1 overflow-y-auto p-6 bg-gray-50">
+          <div className="max-w-7xl mx-auto">
             <Outlet />
           </div>
         </main>
