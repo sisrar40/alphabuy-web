@@ -110,7 +110,7 @@ const ImageCarousel = ({
                 className="w-full h-full object-cover"
                 loading={index === 0 ? "eager" : "lazy"}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-60" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-80" />
             </div>
           ))}
         </div>
@@ -120,7 +120,7 @@ const ImageCarousel = ({
         <>
           <button
             onClick={prevSlide}
-            className="absolute top-1/2 left-8 transform -translate-y-1/2 w-14 h-14 flex items-center justify-center bg-white/10 backdrop-blur-xl text-white border border-white/20 rounded-2xl hover:bg-white/20 transition-all opacity-0 group-hover:opacity-100 shadow-xl"
+            className="absolute top-1/2 left-8 transform -translate-y-1/2 w-14 h-14 flex items-center justify-center bg-black/20 backdrop-blur-xl text-white border border-white/20 rounded-2xl hover:bg-black/30 transition-all opacity-0 group-hover:opacity-100 shadow-xl"
             aria-label="Previous"
           >
             <FaChevronLeft className="w-4 h-4" />
@@ -128,7 +128,7 @@ const ImageCarousel = ({
 
           <button
             onClick={nextSlide}
-            className="absolute top-1/2 right-8 transform -translate-y-1/2 w-14 h-14 flex items-center justify-center bg-white/10 backdrop-blur-xl text-white border border-white/20 rounded-2xl hover:bg-white/20 transition-all opacity-0 group-hover:opacity-100 shadow-xl"
+            className="absolute top-1/2 right-8 transform -translate-y-1/2 w-14 h-14 flex items-center justify-center bg-black/20 backdrop-blur-xl text-white border border-white/20 rounded-2xl hover:bg-black/30 transition-all opacity-0 group-hover:opacity-100 shadow-xl"
             aria-label="Next"
           >
             <FaChevronRight className="w-4 h-4" />
@@ -136,7 +136,7 @@ const ImageCarousel = ({
         </>
       )}
 
-      <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 flex items-center gap-6 bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl px-8 py-4 shadow-2xl transition-all">
+      <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 flex items-center gap-6 bg-black/30 backdrop-blur-xl border border-white/20 rounded-3xl px-8 py-4 shadow-2xl transition-all">
         {showIndicators && (
           <div className="flex space-x-3">
             {images.map((_, index) => (
@@ -171,7 +171,7 @@ const ImageCarousel = ({
       </div>
 
       {/* Experience Count */}
-      <div className="absolute top-8 left-8 bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl px-5 py-2.5 text-white/90 text-[10px] font-black uppercase tracking-[0.2em] shadow-lg">
+      <div className="absolute top-8 left-8 bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl px-5 py-2.5 text-white/90 text-[10px] font-bold uppercase tracking-widest shadow-lg">
          Adventure {currentIndex + 1} / {images.length}
       </div>
     </div>

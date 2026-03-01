@@ -11,7 +11,7 @@ const Input = ({
   return (
     <div className={`space-y-2 ${containerClassName}`}>
       {label && (
-        <label className="block text-xs font-black text-gray-500 uppercase tracking-widest ml-1">
+        <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">
           {label}
         </label>
       )}
@@ -21,11 +21,11 @@ const Input = ({
         )}
         <input
           className={`
-            w-full py-4 bg-white border border-gray-100 rounded-2xl outline-none transition-standard font-semibold text-gray-900 placeholder-gray-300 shadow-soft
+            w-full py-4 bg-white border border-gray-100 rounded-2xl outline-none transition-standard font-semibold text-gray-900 placeholder-gray-400
             ${Icon ? 'pl-11 pr-4' : 'px-5'}
             ${error 
-              ? 'border-red-200 focus:ring-2 focus:ring-red-500/10 focus:border-red-500' 
-              : 'focus:ring-2 focus:ring-aqua-500/10 focus:border-aqua-500 focus:shadow-premium'}
+              ? 'border-red-200 focus:ring-4 focus:ring-red-500/10 focus:border-red-500' 
+              : 'focus:ring-4 focus:ring-aqua-500/10 focus:border-aqua-500 focus:shadow-premium'}
             ${className}
           `}
           {...props}

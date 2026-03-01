@@ -41,7 +41,7 @@ const AddPark = () => {
   return (
     <AdminLayout>
       <div className="mb-8">
-        <h1 className="text-3xl font-black text-gray-900 tracking-tight">Add New Park</h1>
+        <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Add New Park</h1>
         <p className="text-gray-500 font-medium mt-1">Create a new theme park listing with details and pricing.</p>
       </div>
 

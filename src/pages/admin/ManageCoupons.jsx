@@ -79,7 +79,7 @@ const ManageCoupons = () => {
     <AdminLayout>
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
         <div>
-          <h1 className="text-3xl font-black text-gray-900 tracking-tight">Coupons & Offers</h1>
+          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Coupons & Offers</h1>
           <p className="text-gray-500 font-medium mt-1">Create and manage discount codes for your customers.</p>
         </div>
         <button
@@ -234,7 +234,7 @@ const ManageCoupons = () => {
                 coupons.map((coupon) => (
                   <tr key={coupon.id} className="hover:bg-gray-50/50 transition-colors">
                     <td className="p-4 pl-6">
-                      <div className="font-black text-gray-900 bg-gray-100 px-3 py-1 rounded-lg inline-block border border-gray-200">
+                      <div className="font-bold text-gray-900 bg-gray-100 px-3 py-1 rounded-lg inline-block border border-gray-200">
                         {coupon.couponCode || coupon.code}
                       </div>
                     </td>

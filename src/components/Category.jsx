@@ -20,7 +20,7 @@ const Categories = ({ categories, onCategoryClick }) => {
                   />
                 </div>
               </div>
-              <p className="mt-4 text-xs font-black text-gray-400 uppercase tracking-widest group-hover:text-aqua-600 transition-colors text-center">
+              <p className="mt-4 text-xs font-bold text-gray-500 uppercase tracking-wider group-hover:text-aqua-600 transition-colors text-center">
                 {category.name}
               </p>
             </div>

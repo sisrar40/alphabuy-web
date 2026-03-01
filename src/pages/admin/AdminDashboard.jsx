@@ -13,7 +13,7 @@ const AdminDashboard = () => {
   return (
     <AdminLayout>
       <div className="mb-8">
-        <h1 className="text-3xl font-black text-gray-900 tracking-tight">Dashboard Overview</h1>
+        <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Dashboard Overview</h1>
         <p className="text-gray-500 font-medium mt-1">Welcome back, Admin. Here's what's happening today.</p>
       </div>
 
@@ -23,7 +23,7 @@ const AdminDashboard = () => {
             <div>
               <p className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-1">{stat.title}</p>
               <div className="flex items-baseline space-x-2">
-                <h3 className="text-3xl font-black text-gray-900">{stat.value}</h3>
+                <h3 className="text-3xl font-bold text-gray-900">{stat.value}</h3>
                 <span className="text-sm font-bold text-green-500">{stat.trend}</span>
               </div>
             </div>

@@ -49,7 +49,7 @@ const BookingList = () => {
       header: 'Amount',
       render: (row) => (
         <div>
-          <p className="font-black text-gray-900">₹{row.amount}</p>
+          <p className="font-bold text-gray-900">₹{row.amount}</p>
           <p className={`text-[10px] font-bold uppercase ${row.paymentStatus === 'Paid' ? 'text-green-500' : 'text-red-400'}`}>
             {row.paymentStatus}
           </p>

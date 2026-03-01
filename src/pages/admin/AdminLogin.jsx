@@ -44,7 +44,7 @@ const AdminLogin = () => {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-50 mb-4">
             <FaLock className="text-2xl text-blue-600" />
           </div>
-          <h2 className="text-3xl font-black text-gray-900 tracking-tight">Admin Access</h2>
+          <h2 className="text-3xl font-bold text-gray-900 tracking-tight">Admin Access</h2>
           <p className="text-gray-500 mt-2 font-medium">Please sign in to continue</p>
         </div>
 

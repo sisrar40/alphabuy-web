@@ -6,6 +6,7 @@ import availabilityReducer from '../features/availability/availabilitySlice';
 import couponReducer from '../features/coupons/couponSlice';
 import adminBookingReducer from '../features/bookings/bookingSlice';
 import leadReducer from '../features/leads/leadSlice';
+import bookingReducer from '../store/bookingSlice';
 
 export const store = configureStore({
   reducer: {
@@ -16,6 +17,7 @@ export const store = configureStore({
     coupons: couponReducer,
     adminBookings: adminBookingReducer,
     leads: leadReducer,
+    booking: bookingReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

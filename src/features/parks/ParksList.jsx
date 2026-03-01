@@ -55,24 +55,30 @@ const ParksList = () => {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-12 pb-12">
       <PageHeader 
-        title="Theme Parks" 
-        subtitle="Manage your theme park locations and base pricing."
+        title="Asset Inventory" 
+        subtitle="Comprehensive management of theme park ecosystems and base financial parameters."
         action={
-          <Button onClick={() => navigate('/admin/parks/add')}>
-            <FaPlus className="mr-2" />
-            Add Park
-          </Button>
+          <button 
+            onClick={() => navigate('/admin/parks/add')}
+            className="bg-premium-gradient text-white px-8 py-4 rounded-[24px] font-bold text-[11px] uppercase tracking-wider shadow-xl shadow-aqua-500/30 hover:shadow-aqua-500/50 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-3"
+          >
+            <FaPlus className="text-sm" />
+            Initialize Asset
+          </button>
         }
       />
 
-      <Table 
-        columns={columns} 
-        data={items} 
-        loading={loading} 
-        pagination={{ total: items.length, current: 1 }}
-      />
+      <div className="premium-card p-2 border-none overflow-hidden relative">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-aqua-100/10 rounded-full blur-[100px] -mr-32 -mt-32"></div>
+        <Table 
+          columns={columns} 
+          data={items} 
+          loading={loading} 
+          pagination={{ total: items.length, current: 1 }}
+        />
+      </div>
     </div>
   );
 };

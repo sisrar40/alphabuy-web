@@ -60,7 +60,7 @@ const AddAvailableDates = () => {
   return (
     <AdminLayout>
       <div className="mb-8">
-        <h1 className="text-3xl font-black text-gray-900 tracking-tight">Manage Inventory</h1>
+        <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Manage Inventory</h1>
         <p className="text-gray-500 font-medium mt-1">Add available booking dates and ticket limits for specific parks.</p>
       </div>
 

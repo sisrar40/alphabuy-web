@@ -5,7 +5,10 @@ import {
   FaArrowRight,
   FaArrowLeft,
   FaClock,
+  FaCalendarAlt,
+  FaCheck
 } from "react-icons/fa";
+import Button from "./ui/Button";
 
 // Step 1: Date Selection
 const DateSelectionStep = ({ bookingData, setBookingData, nextStep }) => {
@@ -180,48 +183,49 @@ const DateSelectionStep = ({ bookingData, setBookingData, nextStep }) => {
   };
 
   return (
-    <div className="bg-white rounded-[40px] p-8 md:p-12 border border-gray-50 shadow-soft">
-      <div className="flex items-center justify-between mb-12">
+    <div className="premium-card p-8 md:p-12 border-none">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-12">
         <div>
-          <p className="text-[10px] font-black text-aqua-500 uppercase tracking-widest mb-2">Step 1 of 4</p>
-          <h2 className="text-4xl font-black text-gray-900 tracking-tight font-display">
-            Pick Your Date
+          <span className="bg-aqua-100 text-aqua-600 text-[9px] font-bold text-gray-900 uppercase tracking-widest px-5 py-2 rounded-full shadow-sm mb-3 inline-block">Initial Configuration</span>
+          <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 tracking-tight font-display">
+            Strategic Date
           </h2>
+          <p className="text-gray-400 font-medium text-sm mt-2">Select your ideal splash window for the ultimate adventure.</p>
         </div>
-        <div className="w-16 h-16 bg-aqua-50 rounded-3xl flex items-center justify-center text-aqua-600 text-2xl">
-          📅
+        <div className="w-20 h-20 bg-premium-gradient rounded-[28px] flex items-center justify-center text-white text-3xl shadow-xl shadow-aqua-500/20">
+          <FaCalendarAlt />
         </div>
       </div>
 
       {/* Month Navigation */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-10 bg-gray-50/50 p-3 rounded-[28px] border border-gray-100/50">
         <button
           onClick={prevMonth}
-          className="w-12 h-12 rounded-2xl border border-gray-100 bg-white shadow-soft text-gray-400 hover:text-aqua-600 hover:border-aqua-100 hover:shadow-premium transition-standard flex items-center justify-center group"
+          className="w-14 h-14 rounded-2xl bg-white shadow-soft text-gray-400 hover:text-aqua-600 border border-transparent hover:border-gray-100 transition-standard flex items-center justify-center group active:scale-95"
         >
-          <FaArrowLeft className="text-sm group-hover:-translate-x-0.5 transition-transform" />
+          <FaArrowLeft className="text-xs group-hover:-translate-x-0.5 transition-transform" />
         </button>
 
-        <h3 className="text-2xl font-black text-gray-900 tracking-tight">
+        <h3 className="text-2xl font-bold text-gray-900 tracking-tight font-display">
           {monthNames[currentMonth]} {currentYear}
         </h3>
 
         <button
           onClick={nextMonth}
-          className="w-12 h-12 rounded-2xl border border-gray-100 bg-white shadow-soft text-gray-400 hover:text-aqua-600 hover:border-aqua-100 hover:shadow-premium transition-standard flex items-center justify-center group"
+          className="w-14 h-14 rounded-2xl bg-white shadow-soft text-gray-400 hover:text-aqua-600 border border-transparent hover:border-gray-100 transition-standard flex items-center justify-center group active:scale-95"
         >
-          <FaArrowRight className="text-sm group-hover:translate-x-0.5 transition-transform" />
+          <FaArrowRight className="text-xs group-hover:translate-x-0.5 transition-transform" />
         </button>
       </div>
 
       {/* Calendar Grid */}
-      <div className="mb-8">
+      <div className="mb-10">
         {/* Day Headers */}
-        <div className="grid grid-cols-7 gap-2 mb-4">
+        <div className="grid grid-cols-7 gap-3 mb-6">
           {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
             <div
               key={day}
-              className="text-center text-[10px] font-black text-gray-300 py-2 uppercase tracking-widest"
+              className="text-center text-[9px] font-bold text-gray-500 py-2 uppercase tracking-wider"
             >
               {day}
             </div>
@@ -229,64 +233,59 @@ const DateSelectionStep = ({ bookingData, setBookingData, nextStep }) => {
         </div>
 
         {/* Calendar Days */}
-        <div className="grid grid-cols-7 gap-2 md:gap-3">
+        <div className="grid grid-cols-7 gap-3 md:gap-4">
           {calendarDays.map((day, index) => (
-            <div key={index} className="min-h-[80px] md:min-h-[100px]">
+            <div key={index} className="min-h-[90px] md:min-h-[110px]">
               {day ? (
                 <button
                   onClick={() => handleDateSelect(day.day)}
                   disabled={!day.available}
-                  className={`w-full h-full p-2 md:p-3 rounded-2xl border-2 text-center transition-standard flex flex-col items-center justify-center relative overflow-hidden ${
+                  className={`w-full h-full p-4 rounded-[24px] border-2 text-center transition-all duration-500 flex flex-col items-center justify-center relative overflow-hidden group ${
                     day.selected
-                      ? "border-aqua-500 bg-aqua-50 shadow-premium ring-2 ring-aqua-500/10"
+                      ? "border-aqua-500 bg-white shadow-premium ring-4 ring-aqua-500/10"
                       : day.today
-                      ? "border-blue-300 bg-blue-50"
-                      : "border-gray-100 bg-white hover:border-aqua-200 hover:shadow-soft"
+                      ? "border-blue-200 bg-blue-50/30"
+                      : "border-gray-50 bg-white hover:border-aqua-100 hover:shadow-soft"
                   } ${
                     !day.available
-                      ? "opacity-30 cursor-not-allowed grayscale"
+                      ? "opacity-20 cursor-not-allowed grayscale"
                       : "cursor-pointer"
                   }`}
                 >
-                  <div className="flex items-center justify-between w-full mb-1">
-                    <span
-                      className={`text-[10px] font-black uppercase tracking-wider ${
-                        day.selected
-                          ? "text-aqua-600"
-                          : day.today
-                          ? "text-blue-500"
-                          : "text-gray-300"
-                      }`}
-                    >
-                      {day.dayName}
-                    </span>
+                  <div className="flex items-center justify-center w-full mb-2">
                     {day.today && (
-                      <span className="text-[9px] bg-blue-500 text-white px-1.5 py-0.5 rounded-lg font-black uppercase tracking-wider">
-                        Now
+                      <span className="text-[7px] bg-blue-500 text-white px-2 py-0.5 rounded-full font-bold uppercase tracking-wider shadow-sm">
+                        Today
                       </span>
                     )}
                   </div>
 
                   <div
-                    className={`text-xl md:text-2xl font-black my-1 ${
+                    className={`text-2xl md:text-3xl font-bold mb-1 font-display transition-colors ${
                       day.selected
-                        ? "text-aqua-700"
+                        ? "text-aqua-600"
                         : day.available
                         ? "text-gray-900"
-                        : "text-gray-400"
+                        : "text-gray-500"
                     }`}
                   >
                     {day.day}
                   </div>
 
                   {day.available ? (
-                    <div className={`text-[10px] font-black ${
-                      day.selected ? "text-aqua-600" : "text-gray-400"
+                    <div className={`text-[9px] font-bold uppercase tracking-wider ${
+                      day.selected ? "text-aqua-500" : "text-gray-500"
                     }`}>
                       ₹{day.price}
                     </div>
                   ) : (
-                    <div className="text-[10px] text-red-400 font-black uppercase tracking-wider mt-1">Full</div>
+                    <div className="text-[8px] text-red-400 font-bold uppercase tracking-wider">Full</div>
+                  )}
+
+                  {day.selected && (
+                    <div className="absolute top-0 right-0 w-8 h-8 bg-aqua-500 rounded-bl-2xl flex items-center justify-center text-white text-[10px] shadow-sm animate-in zoom-in duration-300">
+                      <FaCheck />
+                    </div>
                   )}
                 </button>
               ) : (
@@ -299,14 +298,16 @@ const DateSelectionStep = ({ bookingData, setBookingData, nextStep }) => {
 
       {/* Selected Date Info Banner */}
       {selectedDate && (
-        <div className="bg-aqua-50 border border-aqua-100 rounded-[28px] p-6 mb-8 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-soft text-2xl">
-              📅
+        <div className="bg-aqua-50/50 border border-aqua-100 rounded-[32px] p-8 mb-10 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden group">
+          <div className="absolute top-0 left-0 w-64 h-64 bg-aqua-100/30 rounded-full blur-3xl -ml-32 -mt-32 group-hover:bg-aqua-200/40 transition-colors"></div>
+          
+          <div className="flex items-center gap-6 relative z-10">
+            <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-soft text-aqua-600 text-2xl border border-aqua-100">
+               <FaCalendarAlt />
             </div>
             <div>
-              <p className="text-[10px] font-black text-aqua-500 uppercase tracking-widest mb-1">Your Adventure Date</p>
-              <p className="text-gray-900 font-black text-lg">
+              <p className="text-[9px] font-bold text-aqua-500 uppercase tracking-widest mb-2 leading-none">Your Target Window</p>
+              <p className="text-gray-900 font-bold text-xl lg:text-2xl font-display tracking-tight">
                 {new Date(selectedDate).toLocaleDateString("en-US", {
                   weekday: "long",
                   year: "numeric",
@@ -316,9 +317,9 @@ const DateSelectionStep = ({ bookingData, setBookingData, nextStep }) => {
               </p>
             </div>
           </div>
-          <div className="text-right bg-white p-4 rounded-2xl border border-aqua-100 shadow-sm">
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Entry From</p>
-            <p className="text-2xl font-black text-aqua-600 tracking-tighter">
+          <div className="text-right bg-white px-8 py-5 rounded-[24px] border border-aqua-100 shadow-soft relative z-10 min-w-[150px]">
+            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-1">Starting Point</p>
+            <p className="text-3xl font-bold text-gray-900 tracking-tighter">
               ₹{getPriceForDate(selectedDate)}
             </p>
           </div>
@@ -326,36 +327,31 @@ const DateSelectionStep = ({ bookingData, setBookingData, nextStep }) => {
       )}
 
       {/* Park Info Pills */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
         {[
-          { icon: <FaClock />, label: "10:00 AM — 8:00 PM" },
-          { icon: <FaUsers />, label: "5,000 Visitors / Day" },
-          { icon: <FaMapMarkerAlt />, label: "Adventure City" },
+          { icon: <FaClock />, label: "Hours: 10:00 — 20:00" },
+          { icon: <FaUsers />, label: "Capacity Optimized" },
+          { icon: <FaMapMarkerAlt />, label: "Lonavala High-Hill" },
         ].map((item, i) => (
-          <div key={i} className="flex items-center gap-3 bg-gray-50/80 p-4 rounded-2xl border border-gray-100">
-            <div className="w-8 h-8 bg-aqua-50 rounded-xl flex items-center justify-center text-aqua-600 text-xs">
+          <div key={i} className="flex items-center gap-4 bg-white p-5 rounded-[24px] border border-gray-100 shadow-inner-sm group hover:border-aqua-100 transition-colors">
+            <div className="w-10 h-10 bg-aqua-50 rounded-xl flex items-center justify-center text-aqua-600 text-xs shadow-sm group-hover:bg-aqua-100 transition-colors">
               {item.icon}
             </div>
-            <span className="text-xs font-black text-gray-600 uppercase tracking-widest">{item.label}</span>
+            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">{item.label}</span>
           </div>
         ))}
       </div>
 
-      <button
+      <Button
         onClick={handleContinue}
         disabled={!selectedDate}
-        className={`w-full py-5 rounded-[20px] font-black text-sm uppercase tracking-widest flex items-center justify-center gap-3 transition-standard ${
-          selectedDate
-            ? "bg-aqua-gradient text-white shadow-premium hover:shadow-xl hover:scale-[1.01]"
-            : "bg-gray-100 text-gray-300 cursor-not-allowed"
-        }`}
+        className="w-full !rounded-[28px] !py-6 text-[11px] tracking-widest uppercase shadow-2xl"
       >
-        Choose Tickets
-        <FaArrowRight />
-      </button>
+        Continue to Tickets
+        <FaArrowRight className="text-xs ml-2" />
+      </Button>
     </div>
   );
-
 };
 
 export default DateSelectionStep;

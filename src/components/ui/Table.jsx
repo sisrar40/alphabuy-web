@@ -13,7 +13,7 @@ const Table = ({
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="bg-gray-50/30 text-gray-400 text-[10px] font-black uppercase tracking-[0.2em] border-b border-gray-50">
+            <tr className="bg-gray-50/30 text-gray-400 text-[10px] font-bold uppercase tracking-wider border-b border-gray-50">
               {columns.map((column, index) => (
                 <th 
                   key={index} 
@@ -29,12 +29,12 @@ const Table = ({
               <tr>
                 <td colSpan={columns.length} className="p-20 text-center">
                   <Loader className="mx-auto h-12 w-12 text-aqua-500" />
-                  <p className="mt-6 text-xs font-black text-gray-400 uppercase tracking-widest">Synchronizing Data...</p>
+                  <p className="mt-6 text-xs font-bold text-gray-400 uppercase tracking-widest">Synchronizing Data...</p>
                 </td>
               </tr>
             ) : data.length === 0 ? (
               <tr>
-                <td colSpan={columns.length} className="p-20 text-center text-xs font-black text-gray-400 uppercase tracking-widest">
+                <td colSpan={columns.length} className="p-20 text-center text-xs font-bold text-gray-400 uppercase tracking-widest">
                   No records stored.
                 </td>
               </tr>

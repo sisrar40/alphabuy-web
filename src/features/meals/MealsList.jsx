@@ -51,23 +51,29 @@ const MealsList = () => {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-12 pb-12">
       <PageHeader 
-        title="Meal Management" 
-        subtitle="Manage the dining plans associated with your theme parks."
+        title="Culinary Inventory" 
+        subtitle="Strategic management of dining assets and nutritional infrastructure across the park network."
         action={
-          <Button onClick={() => navigate('/admin/meals/add')}>
-            <FaPlus className="mr-2" />
-            Add Meal
-          </Button>
+          <button 
+            onClick={() => navigate('/admin/meals/add')}
+            className="bg-premium-gradient text-white px-8 py-4 rounded-[24px] font-bold text-[11px] uppercase tracking-wider shadow-xl shadow-aqua-500/30 hover:shadow-aqua-500/50 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-3"
+          >
+            <FaPlus className="text-sm" />
+            Provision Culinary Asset
+          </button>
         }
       />
 
-      <Table 
-        columns={columns} 
-        data={items} 
-        loading={loading}
-      />
+      <div className="premium-card p-2 border-none overflow-hidden relative">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-aqua-100/10 rounded-full blur-[100px] -mr-32 -mt-32"></div>
+        <Table 
+          columns={columns} 
+          data={items} 
+          loading={loading}
+        />
+      </div>
     </div>
   );
 };

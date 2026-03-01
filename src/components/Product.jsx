@@ -44,8 +44,8 @@ const Product = ({
         onClick={handleFavorite}
         className={`p-2 rounded-full shadow-lg transition-all duration-200 ${
           isFavorite
-            ? "bg-red-500 text-white"
-            : "bg-gray-800/80 text-gray-300 hover:bg-red-500 hover:text-white"
+            ? "bg-red-500 text-white shadow-lg"
+            : "bg-white text-gray-400 border border-gray-100 hover:bg-red-50 hover:text-red-500 shadow-soft"
         }`}
         aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
       >
@@ -54,7 +54,7 @@ const Product = ({
 
       <button
         onClick={handleQuickView}
-        className="p-2 bg-gray-800/80 text-gray-300 rounded-full shadow-lg hover:bg-[#1C9789] hover:text-white transition-all duration-200"
+        className="p-2 bg-white text-gray-400 border border-gray-100 rounded-full shadow-soft hover:bg-aqua-50 hover:text-aqua-600 transition-all duration-200"
         aria-label="Quick view"
       >
         <FaEye className="w-4 h-4" />
@@ -76,7 +76,7 @@ const Product = ({
             className="w-full h-44 object-cover"
           />
           {hasDiscount && (
-            <span className="absolute top-3 left-3 bg-red-500 text-white text-[10px] px-2 py-1 rounded-lg shadow-lg font-black uppercase tracking-wider">
+            <span className="absolute top-3 left-3 bg-red-500 text-white text-[10px] px-2 py-1 rounded-lg shadow-lg font-bold uppercase tracking-wider">
               {Math.round(discountPercentage)}% OFF
             </span>
           )}
@@ -91,7 +91,7 @@ const Product = ({
 
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-baseline gap-2">
-              <span className="text-xl font-black text-green-600">
+              <span className="text-xl font-bold text-green-600">
                 ₹{price.toFixed(0)}
               </span>
               {hasDiscount && (
@@ -112,7 +112,7 @@ const Product = ({
   if (variant === "featured") {
     return (
       <div
-        className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 border border-gray-700/50 relative"
+        className="bg-white rounded-3xl shadow-soft hover:shadow-premium transition-all duration-300 border border-gray-100 relative"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
@@ -133,27 +133,27 @@ const Product = ({
         <div className="p-5">
           <div className="flex justify-between items-start mb-2">
             <div>
-              <h3 className="text-lg font-bold text-white mb-1">{title}</h3>
-              <p className="text-xs text-gray-400">
+              <h3 className="text-xl font-bold text-gray-900 mb-1">{title}</h3>
+              <p className="text-xs font-medium text-gray-400 uppercase tracking-widest">
                 {brand} • {category}
               </p>
             </div>
             <div className="flex items-center gap-1 text-yellow-500">
               <FaStar />
-              <span className="text-sm font-semibold text-white">
+              <span className="text-sm font-bold text-gray-900">
                 {rating.toFixed(1)}
               </span>
             </div>
           </div>
 
-          <p className="text-sm text-gray-300 mb-4 line-clamp-2">
+          <p className="text-sm text-gray-500 font-medium mb-6 line-clamp-2">
             {description}
           </p>
 
           {/* Price Section */}
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <span className="text-xl font-bold text-white">
+              <span className="text-2xl font-bold text-gray-900 tracking-tight">
                 ₹{price.toFixed(2)}
               </span>
               {hasDiscount && (
@@ -179,7 +179,7 @@ const Product = ({
   // Default variant
   return (
     <div
-      className="bg-gray-800/50 backdrop-blur-sm rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col border border-gray-700/50 relative"
+      className="bg-white rounded-3xl shadow-soft hover:shadow-premium transition-all duration-300 overflow-hidden flex flex-col border border-gray-100 relative"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -202,7 +202,7 @@ const Product = ({
         {showQuickActions && <QuickActions />}
 
         {/* Category Badge */}
-        <span className="absolute top-2 right-2 bg-gray-700/80 text-gray-300 text-xs px-2 py-1 rounded-full font-medium backdrop-blur-sm">
+        <span className="absolute top-3 right-3 bg-gray-50 text-gray-400 text-[10px] px-3 py-1 rounded-full font-bold uppercase tracking-widest border border-gray-100 shadow-sm">
           {category}
         </span>
       </div>
@@ -210,7 +210,7 @@ const Product = ({
       {/* Product Info */}
       <div className="p-5 flex flex-col flex-grow">
         {/* Title & Brand */}
-        <h3 className="text-md font-semibold text-white mb-1 line-clamp-2">
+        <h3 className="text-lg font-bold text-gray-900 mb-1 line-clamp-1 truncate">
           {title}
         </h3>
         <p className="text-xs text-gray-400 mb-2">
@@ -220,7 +220,7 @@ const Product = ({
         {/* Rating */}
         <div className="flex items-center gap-1 text-yellow-500 text-sm mb-3">
           <FaStar />
-          <span className="text-white font-medium">{rating.toFixed(1)}</span>
+          <span className="text-gray-900 font-bold">{rating.toFixed(1)}</span>
           <span className="text-gray-400 text-xs">
             ({Math.floor(rating * 20)} reviews)
           </span>
@@ -229,7 +229,7 @@ const Product = ({
         {/* Price Section - COMPLETE */}
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <span className="text-xl font-bold text-white">
+            <span className="text-2xl font-bold text-gray-900 tracking-tight">
               ₹{price.toFixed(2)}
             </span>
             {hasDiscount && (
@@ -247,7 +247,7 @@ const Product = ({
         </div>
 
         {/* Description */}
-        <p className="text-sm text-gray-300 mb-4 line-clamp-2 flex-grow">
+        <p className="text-sm text-gray-500 font-medium mb-6 line-clamp-2 flex-grow">
           {description}
         </p>
 

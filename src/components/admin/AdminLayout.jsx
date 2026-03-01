@@ -38,7 +38,7 @@ const AdminLayout = ({ children }) => {
         }`}
       >
         <div className="flex items-center justify-between h-16 px-6 border-b border-gray-100 bg-white">
-          <span className="text-xl font-black text-blue-600 tracking-tight">AlphaBuy <span className="text-gray-800">Admin</span></span>
+          <span className="text-xl font-bold text-blue-600 tracking-tight">AlphaBuy <span className="text-gray-800">Admin</span></span>
           <button
             onClick={() => setSidebarOpen(false)}
             className="md:hidden text-gray-500 hover:text-gray-700 focus:outline-none"

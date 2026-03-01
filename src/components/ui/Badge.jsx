@@ -14,7 +14,7 @@ const Badge = ({
   };
 
   return (
-    <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${variants[variant]} ${className}`}>
+    <span className={`px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border ${variants[variant]} ${className}`}>
       {children}
     </span>
   );

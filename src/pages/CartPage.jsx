@@ -12,9 +12,13 @@ import {
   FaMapMarkerAlt,
   FaClock,
 } from "react-icons/fa";
-import Button from "../components/Button";
+import Button from "../components/ui/Button";
+import { useRazorpay } from "react-razorpay";
+import { useNavigate } from "react-router-dom";
 
 const CartPage = () => {
+  const navigate = useNavigate();
+  const { Razorpay } = useRazorpay();
   const [cartItems, setCartItems] = useState([
     {
       id: 1,
@@ -112,6 +116,42 @@ const CartPage = () => {
     }
   };
 
+  const handleCheckout = () => {
+    const options = {
+      key: "rzp_test_SLwkA3iHaRKsMN", // Using the key provided by user in PaymentStep
+      amount: Math.round(total * 100),
+      currency: "INR",
+      name: "Alphabuy Water Park",
+      description: "Cart Checkout",
+      image: "https://cdn-icons-png.flaticon.com/512/414/414927.png",
+      handler: (response) => {
+        console.log("Payment Successful:", response);
+        // In a real app, we would verify payment on server and clear cart
+        // For now, we redirect to success
+        navigate("/booking-details", { 
+          state: { 
+            transactionId: response.razorpay_payment_id,
+            amount: total.toFixed(2)
+          } 
+        });
+      },
+      prefill: {
+        name: "Alphabuy Guest",
+        email: "guest@alphabuy.in",
+        contact: "9999999999",
+      },
+      theme: {
+        color: "#0ea5e9",
+      },
+    };
+
+    const rzp = new Razorpay(options);
+    rzp.on("payment.failed", (response) => {
+      alert("Payment Failed: " + response.error.description);
+    });
+    rzp.open();
+  };
+
   const getItemIcon = (type) => {
     switch (type) {
       case "ticket":
@@ -128,13 +168,13 @@ const CartPage = () => {
   const getTypeColor = (type) => {
     switch (type) {
       case "ticket":
-        return "bg-blue-500/20 text-blue-300 border-blue-500/30";
+        return "bg-blue-500/10 text-blue-600 border-blue-200";
       case "meal":
-        return "bg-green-500/20 text-green-300 border-green-500/30";
+        return "bg-green-500/10 text-green-600 border-green-200";
       case "fastpass":
-        return "bg-purple-500/20 text-purple-300 border-purple-500/30";
+        return "bg-purple-500/10 text-purple-600 border-purple-200";
       default:
-        return "bg-gray-500/20 text-gray-300 border-gray-500/30";
+        return "bg-gray-500/10 text-gray-600 border-gray-200";
     }
   };
 
@@ -144,7 +184,7 @@ const CartPage = () => {
         <div className="container mx-auto px-4 py-8">
           <div className="max-w-4xl mx-auto">
             <div className="bg-[var(--card-bg)] backdrop-blur-sm rounded-3xl p-10 border border-[var(--border-color)] text-center shadow-xl">
-              <div className="w-24 h-24 mx-auto mb-8 bg-gray-100 dark:bg-gray-800/50 rounded-full flex items-center justify-center">
+              <div className="w-24 h-24 mx-auto mb-8 bg-gray-100  rounded-full flex items-center justify-center">
                 <FaShoppingCart className="text-4xl text-gray-400" />
               </div>
               <h2 className="text-3xl font-bold text-[var(--text-color)] mb-4">
@@ -184,7 +224,7 @@ const CartPage = () => {
             <div className="lg:col-span-2">
               <div className="bg-[var(--card-bg)] shadow-md rounded-2xl border border-[var(--border-color)] overflow-hidden transition-colors duration-300">
                 {/* Cart Header */}
-                <div className="bg-gray-50 dark:bg-gray-800/50 px-6 py-5 border-b border-[var(--border-color)]">
+                <div className="bg-gray-50  px-6 py-5 border-b border-[var(--border-color)]">
                   <h2 className="text-xl font-bold text-[var(--text-color)]">
                     Your Booking Items
                   </h2>
@@ -198,7 +238,7 @@ const CartPage = () => {
                   {cartItems.map((item) => (
                     <div
                       key={item.id}
-                      className="p-6 hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors"
+                      className="p-6 hover:bg-gray-50  transition-colors"
                     >
                       <div className="flex items-start space-x-5">
                         {/* Item Icon */}
@@ -223,7 +263,7 @@ const CartPage = () => {
                             </div>
                             <button
                               onClick={() => removeItem(item.id)}
-                              className="text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 bg-red-50 dark:bg-red-500/10 rounded-lg p-2 transition-colors cursor-pointer"
+                              className="text-red-500 hover:text-red-600   bg-red-50  rounded-lg p-2 transition-colors cursor-pointer"
                               aria-label="Remove item"
                             >
                               <FaTrash />
@@ -266,7 +306,7 @@ const CartPage = () => {
                                 onClick={() =>
                                   updateQuantity(item.id, item.quantity - 1)
                                 }
-                                className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--text-color)] hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors cursor-pointer"
+                                className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--text-color)] hover:bg-gray-200  transition-colors cursor-pointer"
                               >
                                 <FaMinus className="text-xs" />
                               </button>
@@ -277,7 +317,7 @@ const CartPage = () => {
                                 onClick={() =>
                                   updateQuantity(item.id, item.quantity + 1)
                                 }
-                                className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--text-color)] hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors cursor-pointer"
+                                className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--text-color)] hover:bg-gray-200  transition-colors cursor-pointer"
                               >
                                 <FaPlus className="text-xs" />
                               </button>
@@ -285,7 +325,7 @@ const CartPage = () => {
 
                             <div className="text-right">
                               <div className="flex items-baseline space-x-2">
-                                <span className="text-2xl font-black text-green-600 dark:text-green-400">
+                                <span className="text-2xl font-bold text-green-600 ">
                                   ₹{item.price * item.quantity}
                                 </span>
                                 {item.originalPrice > item.price && (
@@ -330,8 +370,8 @@ const CartPage = () => {
                   <div
                     className={`mt-4 p-4 rounded-xl font-medium border ${
                       appliedPromo.discount > 0
-                        ? "bg-green-50 dark:bg-green-500/10 border-green-200 dark:border-green-500/30 text-green-700 dark:text-green-400"
-                        : "bg-red-50 dark:bg-red-500/10 border-red-200 dark:border-red-500/30 text-red-700 dark:text-red-400"
+                        ? "bg-green-50  border-green-200  text-green-700 "
+                        : "bg-red-50  border-red-200  text-red-700 "
                     }`}
                   >
                     {appliedPromo.message}
@@ -348,11 +388,11 @@ const CartPage = () => {
                 </h3>
 
                 {/* Booking Details */}
-                <div className="bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-800/50 rounded-xl p-5 mb-6">
-                  <h4 className="font-bold text-blue-800 dark:text-blue-300 mb-4 text-sm uppercase tracking-wider">
+                <div className="bg-blue-50  border border-blue-100  rounded-xl p-5 mb-6">
+                  <h4 className="font-bold text-blue-800  mb-4 text-sm uppercase tracking-wider">
                     Booking Details
                   </h4>
-                  <div className="space-y-3 text-sm font-medium text-blue-900 dark:text-blue-200 opacity-90">
+                  <div className="space-y-3 text-sm font-medium text-blue-900  opacity-90">
                     <div className="flex items-center">
                       <FaCalendarAlt className="mr-3 text-blue-500 text-lg" />
                       <span>
@@ -379,7 +419,7 @@ const CartPage = () => {
                   </div>
 
                   {appliedPromo && appliedPromo.discount > 0 && (
-                    <div className="flex justify-between text-green-600 dark:text-green-400 font-bold">
+                    <div className="flex justify-between text-green-600  font-bold">
                       <span>Discount ({appliedPromo.discount}%)</span>
                       <span>-₹{discount}</span>
                     </div>
@@ -392,14 +432,14 @@ const CartPage = () => {
 
                   <div className="border-t-2 border-dashed border-[var(--border-color)] pt-4 mt-2 flex justify-between items-center">
                     <span className="text-lg font-bold text-[var(--text-color)]">Total Amount</span>
-                    <span className="text-3xl font-black text-[var(--text-color)] tracking-tight">₹{total.toFixed(2)}</span>
+                    <span className="text-3xl font-bold text-[var(--text-color)] tracking-tight">₹{total.toFixed(2)}</span>
                   </div>
                 </div>
 
                 {/* Savings */}
-                <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800/50 rounded-xl p-4 mb-8 flex justify-between items-center shadow-inner">
-                  <span className="text-green-800 dark:text-green-300 font-bold text-sm">You Save</span>
-                  <span className="text-green-600 dark:text-green-400 font-black text-lg">
+                <div className="bg-green-50  border border-green-200  rounded-xl p-4 mb-8 flex justify-between items-center shadow-inner">
+                  <span className="text-green-800  font-bold text-sm">You Save</span>
+                  <span className="text-green-600  font-bold text-lg">
                     ₹
                     {(
                       cartItems.reduce(
@@ -412,12 +452,14 @@ const CartPage = () => {
                   </span>
                 </div>
 
-                {/* Action Buttons */}
                 <div className="space-y-4">
-                  <Button className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-4 rounded-xl font-bold text-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-lg shadow-blue-600/20">
+                  <Button 
+                    onClick={handleCheckout}
+                    className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-4 rounded-xl font-bold text-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-lg shadow-blue-600/20"
+                  >
                     Proceed to Checkout
                   </Button>
-                  <button className="w-full bg-[var(--input-bg)] border border-[var(--border-color)] text-[var(--text-color)] py-4 rounded-xl font-bold hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-300 shadow-sm cursor-pointer">
+                  <button className="w-full bg-[var(--input-bg)] border border-[var(--border-color)] text-[var(--text-color)] py-4 rounded-xl font-bold hover:bg-gray-100  transition-all duration-300 shadow-sm cursor-pointer">
                     Continue Shopping
                   </button>
                 </div>
