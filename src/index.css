@@ -3,7 +3,7 @@
 @theme {
   --font-sans: system-ui, -apple-system, sans-serif;
   --font-display: system-ui, -apple-system, sans-serif;
-  
+
   /* Primary Aqua/Blue Gradient Palette */
   --color-aqua-50: #f0f9ff;
   --color-aqua-100: #e0f2fe;
@@ -28,32 +28,37 @@
   /* Layout Colors */
   --bg-primary: #f8f9fa;
   --bg-surface: #ffffff;
-  
+
   /* Compatible Variables */
   --bg-color: var(--bg-primary);
   --card-bg: var(--bg-surface);
   --border-color: #f1f5f9;
   --input-bg: #f8fafc;
-  
+
   /* Text Colors */
   --text-primary: #020617;
   --text-secondary: #334155;
   --text-muted: #64748b;
   --text-color: var(--text-primary);
-  
+
   /* Brand Gradients */
   --aqua-gradient: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
   --premium-gradient: linear-gradient(135deg, #22d3ee 0%, #0ea5e9 100%);
   --sunset-gradient: linear-gradient(135deg, #f97316 0%, #f43f5e 100%);
   --tropical-gradient: linear-gradient(135deg, #10b981 0%, #0ea5e9 100%);
-  --glass-gradient: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
-  
+  --glass-gradient: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
+
   /* Elevation */
   --shadow-soft: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
   --shadow-premium: 0 10px 40px -10px rgba(14, 165, 233, 0.15);
   --shadow-sunset: 0 10px 40px -10px rgba(249, 115, 22, 0.2);
-  --shadow-card: 0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  
+  --shadow-card:
+    0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+
   /* Corners */
   --radius-xl: 1rem;
   --radius-2xl: 1.5rem;
@@ -73,7 +78,12 @@ body {
   scroll-behavior: smooth;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-family: var(--font-display);
   font-weight: 700;
   letter-spacing: -0.01em;
@@ -129,10 +139,10 @@ h1, h2, h3, h4, h5, h6 {
 
 .mesh-gradient {
   background-color: #f8f9fa;
-  background-image: 
-    radial-gradient(at 0% 0%, hsla(199,100%,95%,1) 0, transparent 50%), 
-    radial-gradient(at 50% 0%, hsla(187,100%,96%,1) 0, transparent 50%), 
-    radial-gradient(at 100% 0%, hsla(24,100%,96%,1) 0, transparent 50%);
+  background-image:
+    radial-gradient(at 0% 0%, hsla(199, 100%, 95%, 1) 0, transparent 50%),
+    radial-gradient(at 50% 0%, hsla(187, 100%, 96%, 1) 0, transparent 50%),
+    radial-gradient(at 100% 0%, hsla(24, 100%, 96%, 1) 0, transparent 50%);
 }
 
 .text-gradient-aqua {
@@ -211,15 +221,27 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 @keyframes float {
-  0% { transform: translateY(0px) rotate(0deg); }
-  50% { transform: translateY(-15px) rotate(1deg); }
-  100% { transform: translateY(0px) rotate(0deg); }
+  0% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-15px) rotate(1deg);
+  }
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
 }
 
 @keyframes float-slow {
-  0% { transform: translateY(0px) rotate(0deg); }
-  50% { transform: translateY(-30px) rotate(-1deg); }
-  100% { transform: translateY(0px) rotate(0deg); }
+  0% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-30px) rotate(-1deg);
+  }
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
 }
 
 .animate-float {
@@ -230,9 +252,15 @@ h1, h2, h3, h4, h5, h6 {
   animation: float-slow 8s ease-in-out infinite;
 }
 
-.stagger-1 { animation-delay: 0.1s; }
-.stagger-2 { animation-delay: 0.2s; }
-.stagger-3 { animation-delay: 0.3s; }
+.stagger-1 {
+  animation-delay: 0.1s;
+}
+.stagger-2 {
+  animation-delay: 0.2s;
+}
+.stagger-3 {
+  animation-delay: 0.3s;
+}
 
 .parallax-card {
   transition: transform 0.1s ease-out;

@@ -154,13 +154,13 @@ const Header = () => {
               >
                 <div className="relative">
                   <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-600 to-cyan-500 rounded-2xl flex items-center justify-center text-white text-xl sm:text-2xl font-bold shadow-lg shadow-blue-500/30 group-hover:rotate-6 group-hover:scale-110 transition-all duration-300">
-                    W
+                    A
                   </div>
                   <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white animate-pulse"></div>
                 </div>
                 <div className="hidden sm:block">
                   <span className="text-lg sm:text-xl font-black text-gray-900 tracking-tight leading-none">
-                    WaterParks
+                    Alphabuy
                   </span>
                   <span className="text-[8px] font-bold text-blue-500 uppercase tracking-wider block">
                     Asia's Finest
@@ -325,7 +325,7 @@ const Header = () => {
                   <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-cyan-500 rounded-xl flex items-center justify-center text-white font-bold">
                     W
                   </div>
-                  <span className="font-black text-gray-900">WaterParks</span>
+                  <span className="font-black text-gray-900">Alphabuy</span>
                 </div>
                 <button
                   onClick={() => setShowMobileMenu(false)}
@@ -478,7 +478,7 @@ const Header = () => {
                   <FaWater />
                 </div>
                 <h2 className="text-2xl font-bold text-gray-900 mb-1">
-                  Welcome to WaterParks
+                  Welcome to Alphabuy
                 </h2>
                 <p className="text-sm text-gray-500">
                   Sign in to continue your splash adventure

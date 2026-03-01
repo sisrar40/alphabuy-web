@@ -12,14 +12,7 @@ import {
   FaBars,
   FaUserCircle,
   FaBell,
-  FaWater,
-  FaUsers,
-  FaCog,
-  FaChartLine,
-  FaCreditCard,
-  FaPercent,
 } from "react-icons/fa";
-import { GiSpeedBoat } from "react-icons/gi";
 import { useDispatch } from "react-redux";
 import { logout } from "../features/auth/authSlice";
 
@@ -65,7 +58,6 @@ const AdminLayout = () => {
           path: "/admin/dates",
           icon: <FaCalendarAlt />,
         },
-        { name: "Rides", path: "/admin/rides", icon: <GiSpeedBoat /> },
       ],
     },
     {
@@ -74,24 +66,7 @@ const AdminLayout = () => {
         { name: "Promotions", path: "/admin/coupons", icon: <FaTicketAlt /> },
         { name: "Bookings", path: "/admin/bookings", icon: <FaBook /> },
         { name: "User Leads", path: "/admin/leads", icon: <FaHeadset /> },
-        { name: "Reviews", path: "/admin/reviews", icon: <FaUsers /> },
       ],
-    },
-    {
-      label: "FINANCIALS",
-      items: [
-        { name: "Revenue", path: "/admin/revenue", icon: <FaChartLine /> },
-        {
-          name: "Transactions",
-          path: "/admin/transactions",
-          icon: <FaCreditCard />,
-        },
-        { name: "Tax Reports", path: "/admin/taxes", icon: <FaPercent /> },
-      ],
-    },
-    {
-      label: "SETTINGS",
-      items: [{ name: "Settings", path: "/admin/settings", icon: <FaCog /> }],
     },
   ];
 
@@ -115,7 +90,7 @@ const AdminLayout = () => {
             {isSidebarOpen && (
               <div className="flex flex-col">
                 <span className="font-bold text-gray-900 text-lg leading-none">
-                  WATERPARKS
+                  Alphabuy
                 </span>
                 <span className="text-[8px] text-blue-500 uppercase tracking-wider mt-0.5">
                   Admin Panel
