@@ -42,7 +42,13 @@ const leadSlice = createSlice({
       })
       .addCase(fetchLeads.fulfilled, (state, action) => {
         state.loading = false;
-        state.items = action.payload;
+        state.items = (action.payload || []).map(l => ({
+          ...l,
+          park: l.park_id ? 'Park ID ' + String(l.park_id).substring(0, 8) : 'General Inquiry',
+          date: l.created_at || l.createdAt,
+          source: 'Website',
+          priority: l.status === 'New' ? 'High' : 'Medium'
+        }));
       })
       .addCase(fetchLeads.rejected, (state, action) => {
         state.loading = false;

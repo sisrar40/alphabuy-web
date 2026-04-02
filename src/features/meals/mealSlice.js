@@ -1,9 +1,9 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import mealService from '../../services/mealService';
 
-export const fetchMeals = createAsyncThunk('meals/fetchMeals', async (_, { rejectWithValue }) => {
+export const fetchMeals = createAsyncThunk('meals/fetchMeals', async (parkId, { rejectWithValue }) => {
   try {
-    return await mealService.getMeals();
+    return await mealService.getMeals(parkId);
   } catch (error) {
     return rejectWithValue(error.message);
   }
@@ -12,6 +12,23 @@ export const fetchMeals = createAsyncThunk('meals/fetchMeals', async (_, { rejec
 export const addMeal = createAsyncThunk('meals/addMeal', async (mealData, { rejectWithValue }) => {
   try {
     return await mealService.createMeal(mealData);
+  } catch (error) {
+    return rejectWithValue(error.message);
+  }
+});
+
+export const updateMeal = createAsyncThunk('meals/updateMeal', async (mealData, { rejectWithValue }) => {
+  try {
+    return await mealService.updateMeal(mealData);
+  } catch (error) {
+    return rejectWithValue(error.message);
+  }
+});
+
+export const deleteMeal = createAsyncThunk('meals/deleteMeal', async (mealId, { rejectWithValue }) => {
+  try {
+    await mealService.deleteMeal(mealId);
+    return mealId;
   } catch (error) {
     return rejectWithValue(error.message);
   }
@@ -40,6 +57,15 @@ const mealSlice = createSlice({
       })
       .addCase(addMeal.fulfilled, (state, action) => {
         state.items.push(action.payload);
+      })
+      .addCase(updateMeal.fulfilled, (state, action) => {
+        const index = state.items.findIndex((item) => String(item.id) === String(action.payload.id));
+        if (index !== -1) {
+          state.items[index] = action.payload;
+        }
+      })
+      .addCase(deleteMeal.fulfilled, (state, action) => {
+        state.items = state.items.filter((item) => String(item.id) !== String(action.payload));
       });
   },
 });

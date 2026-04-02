@@ -1,9 +1,9 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import couponService from '../../services/couponService';
 
-export const fetchCoupons = createAsyncThunk('coupons/fetchCoupons', async (_, { rejectWithValue }) => {
+export const fetchCoupons = createAsyncThunk('coupons/fetchCoupons', async (parkId, { rejectWithValue }) => {
   try {
-    return await couponService.getCoupons();
+    return await couponService.getCoupons(parkId);
   } catch (error) {
     return rejectWithValue(error.message);
   }
@@ -50,14 +50,33 @@ const couponSlice = createSlice({
       })
       .addCase(fetchCoupons.fulfilled, (state, action) => {
         state.loading = false;
-        state.items = action.payload;
+        // Normalize snake_case from backend to camelCase for frontend
+        state.items = (action.payload || []).map(coupon => ({
+          ...coupon,
+          couponCode: coupon.code,
+          discountType: coupon.discount_type,
+          discountValue: coupon.discount_value,
+          expiryDate: coupon.expiry_date,
+          applicablePark: coupon.applicable_park_id,
+          minimumAmount: coupon.minimum_amount || 0,
+          maxUses: coupon.max_uses || 0
+        }));
       })
       .addCase(fetchCoupons.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
       .addCase(addCoupon.fulfilled, (state, action) => {
-        state.items.push(action.payload);
+        // Normalize the newly added coupon
+        const coupon = action.payload;
+        state.items.push({
+          ...coupon,
+          couponCode: coupon.code,
+          discountType: coupon.discount_type,
+          discountValue: coupon.discount_value,
+          expiryDate: coupon.expiry_date,
+          applicablePark: coupon.applicable_park_id
+        });
       })
       .addCase(deleteCoupon.fulfilled, (state, action) => {
         state.items = state.items.filter(c => c.id !== action.payload);

@@ -3,6 +3,7 @@ import {
   FaArrowRight,
   FaArrowLeft,
   FaCheck,
+  FaCheckCircle,
   FaStar,
   FaUsers,
   FaBolt,
@@ -19,15 +20,18 @@ import {
   FaLock,
 } from "react-icons/fa";
 import { GiLifeBuoy, GiPalmTree, GiBeachBall } from "react-icons/gi";
+import { useDispatch, useSelector } from "react-redux";
+import { setBookingTickets, calculateBookingTotal } from "../store/bookingSlice";
 import Button from "./ui/Button";
 
 const TicketSelectionStep = ({
-  bookingData,
-  setBookingData,
   nextStep,
   prevStep,
 }) => {
-  const [tickets, setTickets] = useState(bookingData.tickets || []);
+  const dispatch = useDispatch();
+  const { tickets: reduxTickets, availableTicketTypes } = useSelector((state) => state.booking);
+  const TICKET_TYPES = availableTicketTypes || [];
+  const [tickets, setTickets] = useState(reduxTickets || []);
   const [showDetails, setShowDetails] = useState({});
   const [familyPackActive, setFamilyPackActive] = useState(false);
   const [groupDiscount, setGroupDiscount] = useState(false);
@@ -39,142 +43,36 @@ const TicketSelectionStep = ({
     }));
   };
 
-  const ticketTypes = [
-    {
-      id: "adult",
-      name: "Adult Premium Pass",
-      description: "Ages 13+ years",
-      price: 1199,
-      originalPrice: 1399,
-      discount: "14% OFF",
-      features: [
-        "All Rides Unlimited Access",
-        "Wave Pool Entry",
-        "Free Parking",
-        "Locker Rental Included",
-        "1 Complimentary Drink",
-      ],
-      popular: true,
-      icon: <FaUsers className="text-blue-600" />,
-      color: "from-blue-500 to-blue-600",
-      bgColor: "blue",
-      maxPerOrder: 10,
-      ageGroup: "13+ years",
-      rideAccess: "All 45+ Rides",
-      benefits: ["Skip Line Access", "Free Locker", "Drink Included"],
-    },
-    {
-      id: "child",
-      name: "Child Adventure Pass",
-      description: "Ages 3-12 years",
-      price: 899,
-      originalPrice: 1099,
-      discount: "18% OFF",
-      features: [
-        "All Kid-Friendly Rides",
-        "Kids Splash Zone Access",
-        "Supervised Activities",
-        "Life Jacket Included",
-        "Kids Meal Voucher",
-      ],
-      icon: <GiBeachBall className="text-orange-600" />,
-      color: "from-orange-500 to-orange-600",
-      bgColor: "orange",
-      maxPerOrder: 8,
-      ageGroup: "3-12 years",
-      rideAccess: "25+ Kids Rides",
-      benefits: ["Supervised Play", "Life Jacket", "Kids Meal"],
-    },
-    {
-      id: "senior",
-      name: "Senior Splash Pass",
-      description: "Ages 60+ years",
-      price: 799,
-      originalPrice: 999,
-      discount: "20% OFF",
-      features: [
-        "All Rides Access",
-        "Priority Seating Areas",
-        "Medical Assistance Available",
-        "Rest Areas Access",
-        "Complimentary Tea/Coffee",
-      ],
-      icon: <GiLifeBuoy className="text-green-600" />,
-      color: "from-green-500 to-green-600",
-      bgColor: "green",
-      maxPerOrder: 6,
-      ageGroup: "60+ years",
-      rideAccess: "All Relaxed Rides",
-      benefits: ["Priority Seating", "Medical Support", "Tea Included"],
-    },
-    {
-      id: "fastpass",
-      name: "Fast Pass Pro",
-      description: "Skip the lines",
-      price: 1999,
-      originalPrice: 2499,
-      discount: "20% OFF",
-      features: [
-        "Skip All Waiting Lines",
-        "Priority Boarding on Rides",
-        "VIP Lounge Access",
-        "Express Entry to Park",
-        "Dedicated Support",
-      ],
-      popular: true,
-      icon: <FaBolt className="text-yellow-600" />,
-      color: "from-yellow-500 to-yellow-600",
-      bgColor: "yellow",
-      maxPerOrder: 5,
-      ageGroup: "All Ages",
-      rideAccess: "Express Queue Access",
-      benefits: ["Skip Lines", "VIP Lounge", "Express Entry"],
-    },
-    {
-      id: "family",
-      name: "Family Fun Pack",
-      description: "2 Adults + 2 Kids",
-      price: 3499,
-      originalPrice: 4596,
-      discount: "24% OFF",
-      features: [
-        "2 Adult + 2 Child Tickets",
-        "Family Picnic Area",
-        "Private Cabana (4 hours)",
-        "Family Meal Deal",
-        "Parking Included",
-      ],
-      icon: <GiPalmTree className="text-purple-600" />,
-      color: "from-purple-500 to-purple-600",
-      bgColor: "purple",
-      maxPerOrder: 2,
-      ageGroup: "Family Package",
-      rideAccess: "All Family Rides",
-      benefits: ["Private Cabana", "Meal Deal", "Parking"],
-    },
-    {
-      id: "vip",
-      name: "VIP Experience",
-      description: "Royal Treatment",
-      price: 4999,
-      originalPrice: 6499,
-      discount: "23% OFF",
-      features: [
-        "All Access Pass",
-        "Personal Guide",
-        "Gourmet Dining",
-        "Spa Access",
-        "Souvenir Package",
-      ],
-      icon: <FaCrown className="text-amber-600" />,
-      color: "from-amber-500 to-amber-600",
-      bgColor: "amber",
-      maxPerOrder: 4,
-      ageGroup: "All Ages",
-      rideAccess: "VIP All Access",
-      benefits: ["Personal Guide", "Gourmet Dining", "Spa Access"],
-    },
-  ];
+  const ticketTypes = TICKET_TYPES.map(t => ({
+    ...t,
+    popular: t.id === 'adult' || t.id === 'fastpass',
+    icon: t.id === 'adult' ? <FaUsers className="text-blue-600" /> :
+      t.id === 'child' ? <GiBeachBall className="text-orange-600" /> :
+        t.id === 'senior' ? <GiLifeBuoy className="text-green-600" /> :
+          t.id === 'fastpass' ? <FaBolt className="text-yellow-600" /> :
+            t.id === 'family' ? <GiPalmTree className="text-purple-600" /> :
+              <FaCrown className="text-amber-600" />,
+    color: t.id === 'adult' ? "from-blue-500 to-blue-600" :
+      t.id === 'child' ? "from-orange-500 to-orange-600" :
+        t.id === 'senior' ? "from-green-500 to-green-600" :
+          t.id === 'fastpass' ? "from-yellow-500 to-yellow-600" :
+            t.id === 'family' ? "from-purple-500 to-purple-600" :
+              "from-amber-500 to-amber-600",
+    bgColor: t.id === 'adult' ? "blue" :
+      t.id === 'child' ? "orange" :
+        t.id === 'senior' ? "green" :
+          t.id === 'fastpass' ? "yellow" :
+            t.id === 'family' ? "purple" :
+              "amber",
+    features: t.benefits && t.benefits.length > 0 ? t.benefits : (
+      t.id === 'adult' ? ["Unlimited Access", "Wave Pool", "Free Parking", "Locker", "1 Drink"] :
+        t.id === 'child' ? ["Kids Rides", "Splash Zone", "Supervised", "Life Jacket", "Meal Voucher"] :
+          t.id === 'senior' ? ["All Rides", "Priority Seating", "Medical Support", "Rest Areas", "Tea/Coffee"] :
+            t.id === 'fastpass' ? ["Skip lines", "Priority boarding", "VIP Lounge", "Express Entry", "Support"] :
+              t.id === 'family' ? ["2 Adults + 2 Kids", "Picnic Area", "Cabana Access", "Meal Deal", "Parking"] :
+                ["All Access", "Personal Guide", "Gourmet Dining", "Spa Access", "Souvenir Package"]
+    ),
+  }));
 
   const updateTicketQuantity = (ticketId, quantity) => {
     if (quantity < 0) return;
@@ -189,7 +87,8 @@ const TicketSelectionStep = ({
     }
 
     setTickets(updatedTickets);
-    setBookingData((prev) => ({ ...prev, tickets: updatedTickets }));
+    dispatch(setBookingTickets(updatedTickets));
+    dispatch(calculateBookingTotal());
 
     // Check for family pack activation
     const adultQty =
@@ -203,38 +102,12 @@ const TicketSelectionStep = ({
     setGroupDiscount(totalTickets >= 5);
   };
 
+  const { pricing } = useSelector((state) => state.booking);
+
   const getTicketQuantity = (ticketId) => {
     const ticket = tickets.find((t) => t.id === ticketId);
     return ticket ? ticket.quantity : 0;
   };
-
-  const calculateSubtotal = () => {
-    return tickets.reduce((total, ticket) => {
-      const ticketType = ticketTypes.find((t) => t.id === ticket.id);
-      return total + (ticketType ? ticketType.price * ticket.quantity : 0);
-    }, 0);
-  };
-
-  const calculateDiscount = () => {
-    let discount = 0;
-    const subtotal = calculateSubtotal();
-
-    // Family pack discount (additional 10%)
-    if (familyPackActive) {
-      discount += subtotal * 0.1;
-    }
-
-    // Group discount (5+ tickets - additional 5%)
-    if (groupDiscount) {
-      discount += subtotal * 0.05;
-    }
-
-    return discount;
-  };
-
-  const totalAmount = calculateSubtotal();
-  const totalDiscount = calculateDiscount();
-  const finalAmount = totalAmount - totalDiscount;
 
   const getBgColorClass = (color) => {
     const colors = {
@@ -308,11 +181,10 @@ const TicketSelectionStep = ({
             return (
               <div
                 key={ticket.id}
-                className={`group relative bg-gradient-to-br ${getBgColorClass(ticket.bgColor)} rounded-3xl overflow-hidden transition-all duration-300 ${
-                  isActive
-                    ? "ring-4 ring-blue-500/20 shadow-2xl scale-[1.02]"
-                    : "hover:shadow-xl hover:-translate-y-1"
-                }`}
+                className={`group relative bg-gradient-to-br ${getBgColorClass(ticket.bgColor)} rounded-3xl overflow-hidden transition-all duration-300 ${isActive
+                  ? "ring-4 ring-blue-500/20 shadow-2xl scale-[1.02]"
+                  : "hover:shadow-xl hover:-translate-y-1"
+                  }`}
               >
                 {/* Popular Badge */}
                 {ticket.popular && (
@@ -364,7 +236,7 @@ const TicketSelectionStep = ({
 
                   {/* Quick Features */}
                   <div className="space-y-2 mb-4">
-                    {ticket.benefits.map((benefit, idx) => (
+                    {(ticket.benefits || []).map((benefit, idx) => (
                       <div key={idx} className="flex items-center gap-2">
                         <FaCheck className="text-green-500 text-xs flex-shrink-0" />
                         <span className="text-xs text-gray-600">{benefit}</span>
@@ -487,7 +359,7 @@ const TicketSelectionStep = ({
                       Family Pack Discount (10%)
                     </span>
                     <span className="text-green-600 font-bold">
-                      -₹{(totalAmount * 0.1).toFixed(0)}
+                      -₹{(pricing.subtotal * 0.1).toFixed(0)}
                     </span>
                   </div>
                 )}
@@ -495,7 +367,7 @@ const TicketSelectionStep = ({
                   <div className="flex justify-between items-center text-sm">
                     <span className="text-green-600">Group Discount (5%)</span>
                     <span className="text-green-600 font-bold">
-                      -₹{(totalAmount * 0.05).toFixed(0)}
+                      -₹{(pricing.subtotal * 0.05).toFixed(0)}
                     </span>
                   </div>
                 )}
@@ -506,13 +378,13 @@ const TicketSelectionStep = ({
             <div className="flex justify-between items-center pt-4 border-t-2 border-blue-200">
               <span className="font-bold text-gray-900">Total Amount</span>
               <div className="text-right">
-                {totalDiscount > 0 && (
+                {pricing.discount > 0 && (
                   <span className="text-sm text-gray-500 line-through block">
-                    ₹{totalAmount}
+                    ₹{pricing.subtotal}
                   </span>
                 )}
                 <span className="text-2xl font-bold text-blue-600">
-                  ₹{finalAmount}
+                  ₹{pricing.total}
                 </span>
               </div>
             </div>

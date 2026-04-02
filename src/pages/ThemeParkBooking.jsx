@@ -1,4 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { setAvailableMetadata } from "../store/bookingSlice";
+import mealService from "../services/mealService";
+import ticketService from "../services/ticketService";
 
 // Import step components
 import DateSelectionStep from "../components/DateSelectionStep";
@@ -17,24 +21,31 @@ import {
 } from "react-icons/fa";
 
 const ThemeParkBooking = () => {
+  const dispatch = useDispatch();
   const [currentStep, setCurrentStep] = useState(1);
-  const [bookingData, setBookingData] = useState({
-    date: null,
-    tickets: [],
-    meals: [],
-    payment: {},
-    parkLocation: "AquaZen Paradise, Lonavala",
-    weather: "32°C • Sunny",
-    selectedDate: null,
-    selectedTime: null,
-    visitors: 2,
-    addOns: [],
-  });
+  const bookingData = useSelector((state) => state.booking);
+  const { pricing, selectedCoupon } = bookingData;
+
+  // Always start at step 1 (Date Selection) when user arrives at booking page
+  // The date and park selection happen in step 1
+
+  useEffect(() => {
+    const fetchMetadata = async () => {
+      if (!bookingData.parkId) return;
+      try {
+        const [meals, tickets] = await Promise.all([
+          mealService.getMeals(bookingData.parkId),
+          ticketService.getTicketTypes(bookingData.parkId)
+        ]);
+        dispatch(setAvailableMetadata({ meals, tickets }));
+      } catch (error) {
+        console.error("Failed to fetch booking metadata:", error);
+      }
+    };
+    fetchMetadata();
+  }, [dispatch, bookingData.parkId]);
 
   const [showSummary, setShowSummary] = useState(true);
-  const [promoCode, setPromoCode] = useState("");
-  const [promoApplied, setPromoApplied] = useState(false);
-  const [promoError, setPromoError] = useState("");
 
   const steps = [
     {
@@ -63,57 +74,17 @@ const ThemeParkBooking = () => {
     },
   ];
 
-  const handlePromoApply = () => {
-    if (promoCode.toUpperCase() === "SPLASH20") {
-      setPromoApplied(true);
-      setPromoError("");
-      // Apply 20% discount logic here
-    } else {
-      setPromoError("Invalid promo code");
-    }
-  };
-
-  const calculateTotal = () => {
-    const basePrice = 1296.82;
-    const ticketTotal = basePrice * bookingData.visitors;
-    const mealTotal = bookingData.meals.reduce(
-      (sum, meal) => sum + (meal.price || 0),
-      0,
-    );
-    const addOnTotal = bookingData.addOns.reduce(
-      (sum, addon) => sum + (addon.price || 0),
-      0,
-    );
-    const taxes = 499;
-    const discount = promoApplied
-      ? 0.2 * (ticketTotal + mealTotal + addOnTotal)
-      : 0;
-
-    return {
-      subtotal: ticketTotal + mealTotal + addOnTotal,
-      taxes,
-      discount,
-      total: ticketTotal + mealTotal + addOnTotal + taxes - discount,
-    };
-  };
-
-  const totals = calculateTotal();
-
   const renderStepContent = () => {
     switch (currentStep) {
       case 1:
         return (
           <DateSelectionStep
-            bookingData={bookingData}
-            setBookingData={setBookingData}
             nextStep={() => setCurrentStep(2)}
           />
         );
       case 2:
         return (
           <TicketSelectionStep
-            bookingData={bookingData}
-            setBookingData={setBookingData}
             nextStep={() => setCurrentStep(3)}
             prevStep={() => setCurrentStep(1)}
           />
@@ -121,8 +92,6 @@ const ThemeParkBooking = () => {
       case 3:
         return (
           <MealSelectionStep
-            bookingData={bookingData}
-            setBookingData={setBookingData}
             nextStep={() => setCurrentStep(4)}
             prevStep={() => setCurrentStep(2)}
           />
@@ -130,16 +99,12 @@ const ThemeParkBooking = () => {
       case 4:
         return (
           <PaymentStep
-            bookingData={bookingData}
-            setBookingData={setBookingData}
             prevStep={() => setCurrentStep(3)}
           />
         );
       default:
         return (
           <DateSelectionStep
-            bookingData={bookingData}
-            setBookingData={setBookingData}
             nextStep={() => setCurrentStep(2)}
           />
         );
@@ -222,13 +187,12 @@ const ThemeParkBooking = () => {
                 <React.Fragment key={step.number}>
                   <div className="flex items-center gap-3">
                     <div
-                      className={`w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center transition-all ${
-                        currentStep > step.number
-                          ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white"
-                          : currentStep === step.number
-                            ? "bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-lg shadow-blue-500/30"
-                            : "bg-gray-100 text-gray-400"
-                      }`}
+                      className={`w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center transition-all ${currentStep > step.number
+                        ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white"
+                        : currentStep === step.number
+                          ? "bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-lg shadow-blue-500/30"
+                          : "bg-gray-100 text-gray-400"
+                        }`}
                     >
                       {currentStep > step.number ? (
                         <FaCheck className="text-sm md:text-base" />
@@ -241,11 +205,10 @@ const ThemeParkBooking = () => {
                         Step {step.number}
                       </div>
                       <div
-                        className={`text-sm font-bold ${
-                          currentStep >= step.number
-                            ? "text-gray-900"
-                            : "text-gray-400"
-                        }`}
+                        className={`text-sm font-bold ${currentStep >= step.number
+                          ? "text-gray-900"
+                          : "text-gray-400"
+                          }`}
                       >
                         {step.title}
                       </div>
@@ -254,9 +217,8 @@ const ThemeParkBooking = () => {
                   {index < steps.length - 1 && (
                     <div className="w-8 md:w-16 h-1 bg-gray-200 rounded-full overflow-hidden hidden md:block">
                       <div
-                        className={`h-full bg-gradient-to-r from-blue-600 to-cyan-500 transition-all duration-500 ${
-                          currentStep > step.number ? "w-full" : "w-0"
-                        }`}
+                        className={`h-full bg-gradient-to-r from-blue-600 to-cyan-500 transition-all duration-500 ${currentStep > step.number ? "w-full" : "w-0"
+                          }`}
                       />
                     </div>
                   )}

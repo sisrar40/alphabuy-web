@@ -1,7 +1,8 @@
 import React from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { FaCheckCircle, FaCalendarAlt, FaTicketAlt, FaUtensils, FaCreditCard, FaHome } from "react-icons/fa";
+import { FaCheckCircle, FaCalendarAlt, FaTicketAlt, FaUtensils, FaCreditCard, FaHome, FaGift } from "react-icons/fa";
+import { MEAL_PLANS, ADD_ONS } from "../data/bookingMetadata";
 
 const BookingDetails = () => {
   const booking = useSelector((state) => state.booking);
@@ -49,11 +50,11 @@ const BookingDetails = () => {
           <div className="flex flex-col md:flex-row justify-between items-center gap-6 pb-10 border-b border-gray-100">
             <div className="text-center md:text-left">
               <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Electronic Reference</p>
-              <h2 className="text-2xl font-bold text-gray-900 tracking-tight">#{booking.payment.transactionId || "ALPH-PREMIUM-X9"}</h2>
+              <h2 className="text-2xl font-bold text-gray-900 tracking-tight">#{booking?.payment?.transactionId || "ALPH-PREMIUM-X9"}</h2>
             </div>
             <div className="bg-aqua-50 border border-aqua-100 px-6 py-3 rounded-2xl flex items-center gap-3">
-               <div className="w-2 h-2 rounded-full bg-aqua-500 animate-pulse"></div>
-               <span className="text-[10px] font-bold text-aqua-600 uppercase tracking-widest">Status: Fully Paid</span>
+              <div className="w-2 h-2 rounded-full bg-aqua-500 animate-pulse"></div>
+              <span className="text-[10px] font-bold text-aqua-600 uppercase tracking-widest">Status: Fully Paid</span>
             </div>
           </div>
 
@@ -83,8 +84,8 @@ const BookingDetails = () => {
                 <div>
                   <h3 className="text-[9px] font-bold text-gray-500 uppercase tracking-wider">Asset Allocation</h3>
                   <div className="space-y-1">
-                    {booking.tickets.length > 0 ? (
-                      booking.tickets.map((t, i) => (
+                    {(booking?.tickets || []).length > 0 ? (
+                      (booking?.tickets || []).map((t, i) => (
                         <p key={i} className="text-lg font-bold text-gray-900 tracking-tight">
                           <span className="text-aqua-600">{t.quantity || t.count}x</span> {t.name || t.type}
                         </p>
@@ -97,22 +98,37 @@ const BookingDetails = () => {
               </div>
             </div>
 
-            {/* Sustainability */}
+            {/* Sustainability (Meals & Add-ons) */}
             <div className="group">
               <div className="flex items-center gap-5 mb-4 font-display">
                 <div className="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center text-aqua-600 text-xl border border-gray-100 shadow-soft transition-all duration-500 group-hover:bg-aqua-500 group-hover:text-white group-hover:scale-110">
                   <FaUtensils />
                 </div>
                 <div>
-                  <h3 className="text-[9px] font-bold text-gray-500 uppercase tracking-wider">Sustainability Plans</h3>
+                  <h3 className="text-[9px] font-bold text-gray-500 uppercase tracking-wider">Dietary & Enhancements</h3>
                   <div className="space-y-1">
-                    {booking.meals.length > 0 ? (
-                      booking.meals.map((m, i) => (
-                        <p key={i} className="text-lg font-bold text-gray-900 tracking-tight">
-                          <span className="text-aqua-600">Added:</span> {m.name}
-                        </p>
-                      ))
-                    ) : (
+                    {(booking?.meals || []).length > 0 ? (
+                      (booking?.meals || []).map((mealId, i) => {
+                        const actualId = typeof mealId === 'string' ? mealId : (mealId.id || mealId.type);
+                        const plan = MEAL_PLANS.find(p => p.id === actualId);
+                        return (
+                          <p key={i} className="text-lg font-bold text-gray-900 tracking-tight">
+                            <span className="text-aqua-600">Meal:</span> {plan?.name || actualId}
+                          </p>
+                        );
+                      })
+                    ) : null}
+                    {booking.selectedAddOns?.length > 0 ? (
+                      booking.selectedAddOns.map((addOnId, i) => {
+                        const addOn = ADD_ONS.find(a => a.id === addOnId);
+                        return (
+                          <p key={`addon-${i}`} className="text-lg font-bold text-gray-900 tracking-tight">
+                            <span className="text-purple-600">Add-on:</span> {addOn?.name || addOnId}
+                          </p>
+                        );
+                      })
+                    ) : null}
+                    {!(booking?.meals || []).length && !(booking?.selectedAddOns || []).length && (
                       <p className="text-lg font-bold text-gray-900 tracking-tight text-gray-400 italic">No dietary plans selected</p>
                     )}
                   </div>
@@ -128,7 +144,7 @@ const BookingDetails = () => {
                 </div>
                 <div>
                   <h3 className="text-[9px] font-bold text-gray-500 uppercase tracking-wider">Financial Ledger</h3>
-                  <p className="text-3xl font-bold text-aqua-600 tracking-tighter mt-1">₹{booking.payment.amount || "0"}</p>
+                  <p className="text-3xl font-bold text-aqua-600 tracking-tighter mt-1">₹{booking?.payment?.amount || booking?.pricing?.total?.toFixed(0) || "0"}</p>
                 </div>
               </div>
             </div>
@@ -137,8 +153,8 @@ const BookingDetails = () => {
           {/* Action Interface */}
           <div className="pt-10 border-t border-gray-100 flex flex-col md:flex-row gap-6">
             <button
-               onClick={() => window.print()}
-               className="flex-1 border border-gray-100 bg-white text-gray-400 py-5 rounded-[24px] font-bold text-[10px] uppercase tracking-widest hover:text-gray-900 hover:border-gray-200 transition-all shadow-soft active:scale-95 flex items-center justify-center gap-3"
+              onClick={() => window.print()}
+              className="flex-1 border border-gray-100 bg-white text-gray-400 py-5 rounded-[24px] font-bold text-[10px] uppercase tracking-widest hover:text-gray-900 hover:border-gray-200 transition-all shadow-soft active:scale-95 flex items-center justify-center gap-3"
             >
               Print Manifest
             </button>
@@ -154,10 +170,10 @@ const BookingDetails = () => {
 
         {/* Footer Disclaimer */}
         <div className="bg-gray-50/50 p-8 border-t border-gray-100 text-center">
-           <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-2 leading-relaxed">
-             This is a digital authorization. Valid only at Alphabuy partner locations.
-           </p>
-           <div className="w-16 h-1 bg-gray-200 mx-auto rounded-full"></div>
+          <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-2 leading-relaxed">
+            This is a digital authorization. Valid only at Alphabuy partner locations.
+          </p>
+          <div className="w-16 h-1 bg-gray-200 mx-auto rounded-full"></div>
         </div>
       </div>
     </div>

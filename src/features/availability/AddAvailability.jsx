@@ -8,6 +8,7 @@ import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
 import Select from "../../components/ui/Select";
 import Badge from "../../components/ui/Badge";
+import { useAlert } from "../../context/AlertContext";
 import {
   FaCalendarAlt,
   FaTicketAlt,
@@ -26,9 +27,10 @@ const AddAvailability = () => {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [errors, setErrors] = useState({});
-  const { items: parks, loading: parksLoading } = useSelector(
+  const { items: parksItems, loading: parksLoading } = useSelector(
     (state) => state.parks,
   );
+  const parks = parksItems || [];
 
   const [formData, setFormData] = useState({
     parkId: "",
@@ -38,12 +40,13 @@ const AddAvailability = () => {
     maxCapacity: "",
     notes: "",
   });
+  const { showAlert } = useAlert();
 
   useEffect(() => {
-    if (parks.length === 0) {
+    if ((parks?.length || 0) === 0) {
       dispatch(fetchParks());
     }
-  }, [dispatch, parks.length]);
+  }, [dispatch, parks?.length]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -73,7 +76,7 @@ const AddAvailability = () => {
     if (!validateForm()) return;
 
     if (!formData.parkId) {
-      alert("Please select a park first");
+      showAlert("Please select a park first", "error");
       return;
     }
 
@@ -102,7 +105,7 @@ const AddAvailability = () => {
 
   const parkOptions = [
     { label: "Select a Park", value: "" },
-    ...parks.map((p) => ({ label: p.parkName, value: p.id })),
+    ...(parks || []).map((p) => ({ label: p.parkName || p.name, value: p.id })),
   ];
 
   const timeSlotOptions = [
@@ -317,7 +320,7 @@ const AddAvailability = () => {
               <div className="flex justify-between items-center">
                 <span className="text-xs text-gray-500">Total Parks</span>
                 <span className="text-sm font-bold text-gray-900">
-                  {parks.length}
+                  {parks?.length || 0}
                 </span>
               </div>
               <div className="flex justify-between items-center">

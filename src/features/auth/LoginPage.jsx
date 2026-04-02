@@ -73,7 +73,7 @@ const LoginPage = () => {
   // Demo credentials
   const handleDemoLogin = () => {
     setFormData({
-      email: "admin@waterparks.com",
+      email: "admin@alphabuy.com",
       password: "admin123",
     });
   };
@@ -117,9 +117,8 @@ const LoginPage = () => {
                     value={formData.email}
                     onChange={handleChange}
                     placeholder="admin@example.com"
-                    className={`w-full pl-10 pr-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all ${
-                      errors.email ? "border-red-500" : "border-gray-300"
-                    }`}
+                    className={`w-full pl-10 pr-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all ${errors.email ? "border-red-500" : "border-gray-300"
+                      }`}
                   />
                 </div>
                 {errors.email && (
@@ -142,9 +141,8 @@ const LoginPage = () => {
                     value={formData.password}
                     onChange={handleChange}
                     placeholder="••••••••"
-                    className={`w-full pl-10 pr-10 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all ${
-                      errors.password ? "border-red-500" : "border-gray-300"
-                    }`}
+                    className={`w-full pl-10 pr-10 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all ${errors.password ? "border-red-500" : "border-gray-300"
+                      }`}
                   />
                   <button
                     type="button"

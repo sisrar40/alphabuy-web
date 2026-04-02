@@ -7,6 +7,8 @@ import couponReducer from '../features/coupons/couponSlice';
 import adminBookingReducer from '../features/bookings/bookingSlice';
 import leadReducer from '../features/leads/leadSlice';
 import bookingReducer from '../store/bookingSlice';
+import walletReducer from '../features/wallet/walletSlice';
+import ticketReducer from '../features/tickets/ticketSlice';
 
 export const store = configureStore({
   reducer: {
@@ -18,6 +20,8 @@ export const store = configureStore({
     adminBookings: adminBookingReducer,
     leads: leadReducer,
     booking: bookingReducer,
+    wallet: walletReducer,
+    tickets: ticketReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

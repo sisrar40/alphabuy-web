@@ -13,6 +13,7 @@ import {
   FaClock,
 } from "react-icons/fa";
 import Button from "../components/ui/Button";
+import { useAlert } from "../context/AlertContext";
 import { useRazorpay } from "react-razorpay";
 import { useNavigate } from "react-router-dom";
 
@@ -74,6 +75,9 @@ const CartPage = () => {
     },
   ]);
 
+  const [isProcessing, setIsProcessing] = useState(false);
+  const { showAlert } = useAlert();
+
   const [promoCode, setPromoCode] = useState("");
   const [appliedPromo, setAppliedPromo] = useState(null);
 
@@ -128,11 +132,11 @@ const CartPage = () => {
         console.log("Payment Successful:", response);
         // In a real app, we would verify payment on server and clear cart
         // For now, we redirect to success
-        navigate("/booking-details", { 
-          state: { 
+        navigate("/booking-details", {
+          state: {
             transactionId: response.razorpay_payment_id,
             amount: total.toFixed(2)
-          } 
+          }
         });
       },
       prefill: {
@@ -147,7 +151,7 @@ const CartPage = () => {
 
     const rzp = new Razorpay(options);
     rzp.on("payment.failed", (response) => {
-      alert("Payment Failed: " + response.error.description);
+      showAlert("Payment Failed: " + response.error.description, "error");
     });
     rzp.open();
   };
@@ -349,7 +353,7 @@ const CartPage = () => {
               {/* Promo Code Section */}
               <div className="bg-[var(--card-bg)] shadow-md border border-[var(--border-color)] rounded-2xl p-6 md:p-8 mt-6 transition-colors duration-300">
                 <h3 className="font-bold text-lg text-[var(--text-color)] mb-4 flex items-center gap-2">
-                   🏷️ Apply Promo Code
+                  🏷️ Apply Promo Code
                 </h3>
                 <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4">
                   <input
@@ -368,11 +372,10 @@ const CartPage = () => {
                 </div>
                 {appliedPromo && (
                   <div
-                    className={`mt-4 p-4 rounded-xl font-medium border ${
-                      appliedPromo.discount > 0
+                    className={`mt-4 p-4 rounded-xl font-medium border ${appliedPromo.discount > 0
                         ? "bg-green-50  border-green-200  text-green-700 "
                         : "bg-red-50  border-red-200  text-red-700 "
-                    }`}
+                      }`}
                   >
                     {appliedPromo.message}
                   </div>
@@ -453,7 +456,7 @@ const CartPage = () => {
                 </div>
 
                 <div className="space-y-4">
-                  <Button 
+                  <Button
                     onClick={handleCheckout}
                     className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-4 rounded-xl font-bold text-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-lg shadow-blue-600/20"
                   >

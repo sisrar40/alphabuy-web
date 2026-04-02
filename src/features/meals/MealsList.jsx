@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { fetchMeals } from "./mealSlice";
+import { fetchMeals, deleteMeal } from "./mealSlice";
+import { useAlert } from "../../context/AlertContext";
 import PageHeader from "../../components/ui/PageHeader";
 import Table from "../../components/ui/Table";
 import Button from "../../components/ui/Button";
@@ -26,7 +27,9 @@ import {
 const MealsList = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { items, loading } = useSelector((state) => state.meals);
+  const { items: mealsItems, loading } = useSelector((state) => state.meals);
+  const { showAlert } = useAlert();
+  const items = mealsItems || [];
   const [searchTerm, setSearchTerm] = useState("");
   const [filterPark, setFilterPark] = useState("all");
   const [filterType, setFilterType] = useState("all");
@@ -46,74 +49,75 @@ const MealsList = () => {
     items.length > 0
       ? items
       : [
-          {
-            id: 1,
-            mealName: "Premium Lunch Buffet",
-            parkName: "AquaZen Paradise",
-            price: 599,
-            type: "buffet",
-            calories: "650-800",
-            popular: true,
-            dietary: "veg & non-veg",
-          },
-          {
-            id: 2,
-            mealName: "Kids Meal Box",
-            parkName: "Splash Kingdom",
-            price: 299,
-            type: "combo",
-            calories: "400-500",
-            popular: false,
-            dietary: "veg",
-          },
-          {
-            id: 3,
-            mealName: "Family Feast Pack",
-            parkName: "Wave World",
-            price: 1999,
-            type: "family",
-            calories: "2000+",
-            popular: true,
-            dietary: "mixed",
-          },
-          {
-            id: 4,
-            mealName: "Healthy Bowl",
-            parkName: "AquaZen Paradise",
-            price: 349,
-            type: "healthy",
-            calories: "350-450",
-            popular: false,
-            dietary: "veg",
-          },
-          {
-            id: 5,
-            mealName: "Seafood Special",
-            parkName: "Water Haven",
-            price: 799,
-            type: "premium",
-            calories: "700-900",
-            popular: true,
-            dietary: "non-veg",
-          },
-          {
-            id: 6,
-            mealName: "Snack Combo",
-            parkName: "Splash Kingdom",
-            price: 199,
-            type: "snack",
-            calories: "250-350",
-            popular: false,
-            dietary: "veg",
-          },
-        ];
+        {
+          id: 1,
+          mealName: "Premium Lunch Buffet",
+          parkName: "AquaZen Paradise",
+          price: 599,
+          type: "buffet",
+          calories: "650-800",
+          popular: true,
+          dietary: "veg & non-veg",
+        },
+        {
+          id: 2,
+          mealName: "Kids Meal Box",
+          parkName: "Splash Kingdom",
+          price: 299,
+          type: "combo",
+          calories: "400-500",
+          popular: false,
+          dietary: "veg",
+        },
+        {
+          id: 3,
+          mealName: "Family Feast Pack",
+          parkName: "Wave World",
+          price: 1999,
+          type: "family",
+          calories: "2000+",
+          popular: true,
+          dietary: "mixed",
+        },
+        {
+          id: 4,
+          mealName: "Healthy Bowl",
+          parkName: "AquaZen Paradise",
+          price: 349,
+          type: "healthy",
+          calories: "350-450",
+          popular: false,
+          dietary: "veg",
+        },
+        {
+          id: 5,
+          mealName: "Seafood Special",
+          parkName: "Water Haven",
+          price: 799,
+          type: "premium",
+          calories: "700-900",
+          popular: true,
+          dietary: "non-veg",
+        },
+        {
+          id: 6,
+          mealName: "Snack Combo",
+          parkName: "Splash Kingdom",
+          price: 199,
+          type: "snack",
+          calories: "250-350",
+          popular: false,
+          dietary: "veg",
+        },
+      ];
 
-  const parks = [...new Set(mockMeals.map((meal) => meal.parkName))];
+  const parks = [...new Set((mockMeals || []).map((meal) => meal.parkName || ""))];
+  const itemsToFilter = mockMeals || [];
 
-  const filteredMeals = mockMeals.filter((meal) => {
+  const filteredMeals = itemsToFilter.filter((meal) => {
     const matchesSearch =
-      meal.mealName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      meal.parkName.toLowerCase().includes(searchTerm.toLowerCase());
+      (meal.mealName || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (meal.parkName || "").toLowerCase().includes(searchTerm.toLowerCase());
     const matchesPark = filterPark === "all" || meal.parkName === filterPark;
     const matchesType = filterType === "all" || meal.type === filterType;
     return matchesSearch && matchesPark && matchesType;
@@ -185,8 +189,8 @@ const MealsList = () => {
         <input
           type="checkbox"
           checked={
-            selectedMeals.length === sortedMeals.length &&
-            sortedMeals.length > 0
+            selectedMeals.length === (sortedMeals?.length || 0) &&
+            (sortedMeals?.length || 0) > 0
           }
           onChange={handleSelectAll}
           className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
@@ -278,7 +282,10 @@ const MealsList = () => {
           <button
             onClick={() => {
               if (window.confirm("Delete this meal?")) {
-                console.log("Delete", row.id);
+                dispatch(deleteMeal(row.id))
+                  .unwrap()
+                  .then(() => showAlert("Meal deleted successfully", "success"))
+                  .catch((err) => showAlert("Failed to delete meal: " + err, "error"));
               }
             }}
             className="w-8 h-8 rounded-lg bg-gray-100 text-gray-600 hover:bg-red-600 hover:text-white transition-all"
@@ -367,8 +374,8 @@ const MealsList = () => {
             <span className="text-2xl font-bold text-gray-900">
               ₹
               {(
-                mockMeals.reduce((sum, m) => sum + m.price, 0) /
-                mockMeals.length
+                (mockMeals || []).reduce((sum, m) => sum + (m.price || 0), 0) /
+                (mockMeals?.length || 1)
               ).toFixed(0)}
             </span>
           </div>
@@ -425,11 +432,10 @@ const MealsList = () => {
             </select>
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
-                showFilters
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
+              className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${showFilters
+                ? "bg-blue-600 text-white"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
             >
               <FaFilter />
               Filters

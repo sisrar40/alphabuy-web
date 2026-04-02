@@ -2,16 +2,16 @@ import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 
-const ProtectedRoute = ({ children, role = 'admin' }) => {
+const ProtectedRoute = ({ children, role = 'admin', redirectPath = '/admin/login' }) => {
   const { isAuthenticated, token } = useSelector((state) => state.auth);
   const location = useLocation();
 
   // Also check localStorage directly to handle cases where Redux state might be lost on refresh before re-hydration
-  const hasToken = token || localStorage.getItem('adminToken');
+  const hasToken = token || localStorage.getItem('token') || localStorage.getItem('adminToken');
 
   if (!isAuthenticated && !hasToken) {
     // Redirect to login but save the current location to redirect back after login
-    return <Navigate to="/admin/login" state={{ from: location }} replace />;
+    return <Navigate to={redirectPath} state={{ from: location }} replace />;
   }
 
   // Future role checks can be implemented here

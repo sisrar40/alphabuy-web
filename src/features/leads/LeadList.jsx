@@ -5,6 +5,7 @@ import PageHeader from "../../components/ui/PageHeader";
 import Table from "../../components/ui/Table";
 import Button from "../../components/ui/Button";
 import Badge from "../../components/ui/Badge";
+import { useAlert } from "../../context/AlertContext";
 import Input from "../../components/ui/Input";
 import {
   FaTrash,
@@ -39,6 +40,7 @@ import {
 
 const LeadList = () => {
   const dispatch = useDispatch();
+  const { showAlert } = useAlert();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterPark, setFilterPark] = useState("all");
@@ -50,92 +52,17 @@ const LeadList = () => {
     direction: "desc",
   });
 
-  const { items, loading } = useSelector((state) => state.leads);
+  const { items: leadsItems, loading } = useSelector((state) => state.leads);
+  const items = leadsItems || [];
 
   useEffect(() => {
     dispatch(fetchLeads());
   }, [dispatch]);
 
-  // Mock data for demonstration
-  const mockLeads =
-    items.length > 0
-      ? items
-      : [
-          {
-            id: 1,
-            name: "Rahul Sharma",
-            email: "rahul.sharma@example.com",
-            phone: "9876543210",
-            park: "AquaZen Paradise",
-            message: "Interested in family packages for weekend",
-            date: "2024-03-15T10:30:00",
-            status: "New",
-            source: "Website",
-            priority: "High",
-          },
-          {
-            id: 2,
-            name: "Priya Patel",
-            email: "priya.patel@example.com",
-            phone: "9876543211",
-            park: "Splash Kingdom",
-            message: "Looking for group discounts for 20 people",
-            date: "2024-03-14T14:20:00",
-            status: "Contacted",
-            source: "WhatsApp",
-            priority: "Medium",
-          },
-          {
-            id: 3,
-            name: "Amit Kumar",
-            email: "amit.kumar@example.com",
-            phone: "9876543212",
-            park: "Wave World",
-            message: "Need information about annual passes",
-            date: "2024-03-13T09:15:00",
-            status: "Converted",
-            source: "Instagram",
-            priority: "Low",
-          },
-          {
-            id: 4,
-            name: "Sneha Reddy",
-            email: "sneha.reddy@example.com",
-            phone: "9876543213",
-            park: "AquaZen Paradise",
-            message: "Birthday party booking for 15 kids",
-            date: "2024-03-12T16:45:00",
-            status: "New",
-            source: "Website",
-            priority: "High",
-          },
-          {
-            id: 5,
-            name: "Vikram Singh",
-            email: "vikram.singh@example.com",
-            phone: "9876543214",
-            park: "Splash Kingdom",
-            message: "Corporate event inquiry for 50 people",
-            date: "2024-03-11T11:30:00",
-            status: "Contacted",
-            source: "Email",
-            priority: "Medium",
-          },
-          {
-            id: 6,
-            name: "Anjali Desai",
-            email: "anjali.desai@example.com",
-            phone: "9876543215",
-            park: "Wave World",
-            message: "Looking for cabana rentals",
-            date: "2024-03-10T13:20:00",
-            status: "New",
-            source: "Facebook",
-            priority: "High",
-          },
-        ];
+  // Use real data from Redux
+  const leadsData = items || [];
 
-  const parks = [...new Set(mockLeads.map((lead) => lead.park))];
+  const parks = [...new Set((leadsData || []).map((lead) => lead.park || ""))];
 
   const handleStatusChange = (id, newStatus) => {
     dispatch(updateLeadStatus({ id, status: newStatus }));
@@ -183,12 +110,12 @@ const LeadList = () => {
   };
 
   // Filter leads
-  const filteredLeads = mockLeads.filter((lead) => {
+  const filteredLeads = (leadsData || []).filter((lead) => {
     const matchesSearch =
-      lead.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      lead.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      lead.phone.includes(searchTerm) ||
-      lead.park.toLowerCase().includes(searchTerm.toLowerCase());
+      (lead.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (lead.email || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (lead.phone || "").includes(searchTerm) ||
+      (lead.park || "").toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesStatus =
       filterStatus === "all" || lead.status === filterStatus;
@@ -274,8 +201,8 @@ const LeadList = () => {
         <input
           type="checkbox"
           checked={
-            selectedLeads.length === filteredLeads.length &&
-            filteredLeads.length > 0
+            selectedLeads.length === (filteredLeads?.length || 0) &&
+            (filteredLeads?.length || 0) > 0
           }
           onChange={handleSelectAll}
           className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
@@ -305,7 +232,7 @@ const LeadList = () => {
       render: (row) => (
         <div className="flex items-start gap-3">
           <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
-            {row.name.charAt(0)}
+            {(row.name || "L").charAt(0)}
           </div>
           <div>
             <div className="flex items-center gap-2">
@@ -363,17 +290,21 @@ const LeadList = () => {
       render: (row) => (
         <div>
           <p className="text-sm font-medium text-gray-900">
-            {new Date(row.date).toLocaleDateString("en-IN", {
-              day: "numeric",
-              month: "short",
-              year: "numeric",
-            })}
+            {row.date && !isNaN(new Date(row.date).getTime()) ? (
+              new Date(row.date).toLocaleDateString("en-IN", {
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+              })
+            ) : "N/A"}
           </p>
           <p className="text-xs text-gray-500 mt-1">
-            {new Date(row.date).toLocaleTimeString("en-IN", {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
+            {row.date && !isNaN(new Date(row.date).getTime()) ? (
+              new Date(row.date).toLocaleTimeString("en-IN", {
+                hour: "2-digit",
+                minute: "2-digit",
+              })
+            ) : ""}
           </p>
         </div>
       ),
@@ -386,12 +317,11 @@ const LeadList = () => {
           onChange={(e) => handleStatusChange(row.id, e.target.value)}
           className={`
             px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider outline-none border transition-all cursor-pointer
-            ${
-              row.status === "Converted"
-                ? "bg-green-50 text-green-700 border-green-200"
-                : row.status === "Contacted"
-                  ? "bg-blue-50 text-blue-700 border-blue-200"
-                  : "bg-yellow-50 text-yellow-700 border-yellow-200"
+            ${row.status === "Converted"
+              ? "bg-green-50 text-green-700 border-green-200"
+              : row.status === "Contacted"
+                ? "bg-blue-50 text-blue-700 border-blue-200"
+                : "bg-yellow-50 text-yellow-700 border-yellow-200"
             }
           `}
         >
@@ -423,6 +353,10 @@ const LeadList = () => {
           </button>
           <button
             onClick={() => {
+              if (row.status !== "Converted") {
+                showAlert("Lead cannot be deleted because payment is not completed.", "error");
+                return;
+              }
               if (window.confirm("Delete this inquiry?"))
                 dispatch(deleteLead(row.id));
             }}
@@ -437,15 +371,15 @@ const LeadList = () => {
   ];
 
   // Summary stats
-  const totalLeads = mockLeads.length;
-  const newLeads = mockLeads.filter((l) => l.status === "New").length;
-  const contactedLeads = mockLeads.filter(
+  const totalLeads = leadsData?.length || 0;
+  const newLeads = (leadsData || []).filter((l) => l.status === "New").length;
+  const contactedLeads = (leadsData || []).filter(
     (l) => l.status === "Contacted",
   ).length;
-  const convertedLeads = mockLeads.filter(
+  const convertedLeads = (leadsData || []).filter(
     (l) => l.status === "Converted",
   ).length;
-  const highPriorityLeads = mockLeads.filter(
+  const highPriorityLeads = (leadsData || []).filter(
     (l) => l.priority === "High",
   ).length;
 
@@ -587,11 +521,10 @@ const LeadList = () => {
             </select>
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
-                showFilters
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
+              className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${showFilters
+                ? "bg-blue-600 text-white"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
             >
               <FaFilter />
               Filters

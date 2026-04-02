@@ -1,21 +1,16 @@
 // Placeholder Admin Auth API
 
-export const attemptAdminLogin = async (email, password) => {
-  // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 800));
+import api from "./axiosConfig";
 
-  // Hardcoded mock authentication check
-  if (email === "admin@alphabuy.com" && password === "admin123") {
+export const attemptAdminLogin = async (email, password) => {
+  try {
+    const response = await api.post('/auth/login', { email, password });
     return {
       success: true,
-      token: "mock-admin-jwt-token-12345",
-      user: {
-        id: "admin_1",
-        email: "admin@alphabuy.com",
-        role: "SuperAdmin"
-      }
+      token: response.data.token,
+      user: response.data.user
     };
-  } else {
-    throw new Error("Invalid admin credentials");
+  } catch (error) {
+    throw new Error(error.response?.data?.error || "Invalid admin credentials");
   }
 };

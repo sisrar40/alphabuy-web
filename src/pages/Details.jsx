@@ -1,7 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Button from "../components/ui/Button";
 
 import { useAppNavigation } from "../hooks/useAppNavigation";
+import { useParams } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchParkById } from "../features/parks/parkSlice";
+import { setBookingParkId } from "../store/bookingSlice";
+import { useAlert } from '../context/AlertContext';
 import {
   FaBaby,
   FaBath,
@@ -57,18 +62,28 @@ function Details() {
   const [selectedTime, setSelectedTime] = useState("");
   const [visitorCount, setVisitorCount] = useState(2);
   const { navigateTo } = useAppNavigation();
+  const { id } = useParams();
+  const dispatch = useDispatch();
+  const { selectedItem: parkData, loading } = useSelector((state) => state.parks);
+  const { showAlert } = useAlert();
 
-  const productDetails = {
-    id: "aqua-zen-001",
-    title: "AquaZen Paradise",
-    subtitle: "Ultimate Water Adventure & Family Destination",
-    price: "₹1,296.82",
+  useEffect(() => {
+    if (id) {
+      dispatch(fetchParkById(id));
+    }
+  }, [id, dispatch]);
+
+  const productDetails = parkData ? {
+    id: parkData.id,
+    title: parkData.name || "AquaZen Paradise",
+    subtitle: parkData.description || "Ultimate Water Adventure & Family Destination",
+    price: `₹${parkData.price}`,
     originalPrice: "₹2,499",
     discount: "48% OFF",
     period: "per person",
     rating: 4.9,
     reviews: "1.2k+",
-    location: "Lonavala, Maharashtra",
+    location: parkData.location || "Lonavala, Maharashtra",
     distance: "45 km from city center",
     availability: "30+ slots today",
     badge: "Premium Pick",
@@ -81,15 +96,15 @@ function Details() {
       "Private cabanas",
       "Multi-cuisine food court",
     ],
-    images: [
+    images: parkData.images && parkData.images.length > 0 ? parkData.images : (parkData.image ? [parkData.image] : [
       "https://images.unsplash.com/photo-1582650625119-3a31f8fa2699?q=80&w=1000&auto=format&fit=crop",
       "https://images.unsplash.com/photo-1519046904884-53103b34b206?q=80&w=1000&auto=format&fit=crop",
       "https://images.unsplash.com/photo-1540541338287-41700207dee6?q=80&w=1000&auto=format&fit=crop",
       "https://images.unsplash.com/photo-1575429198097-0414ec08e8cd?q=80&w=1000&auto=format&fit=crop",
       "https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=1000&auto=format&fit=crop",
       "https://images.unsplash.com/photo-1533105079780-92b9be482077?q=80&w=1000&auto=format&fit=crop",
-    ],
-  };
+    ]),
+  } : null;
 
   const specifications = [
     { icon: <FaWater />, label: "Park Type", value: "Water Park + Resort" },
@@ -223,10 +238,19 @@ function Details() {
         break;
       default:
         navigator.clipboard.writeText(url);
-        alert("Link copied to clipboard!");
+        showAlert("Link copied to clipboard!", "success");
     }
     setShowShareModal(false);
   };
+
+  if (loading || !productDetails) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-cyan-50 flex flex-col items-center justify-center">
+        <FaWater className="text-6xl text-blue-300 mb-4 animate-bounce" />
+        <div className="text-blue-600 font-bold text-xl">Loading park details...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-cyan-50">
@@ -248,11 +272,10 @@ function Details() {
             <button
               key={index}
               onClick={() => setSelectedImage(index)}
-              className={`w-2.5 h-2.5 rounded-full transition-all ${
-                selectedImage === index
-                  ? "w-8 bg-white"
-                  : "bg-white/50 hover:bg-white/80"
-              }`}
+              className={`w-2.5 h-2.5 rounded-full transition-all ${selectedImage === index
+                ? "w-8 bg-white"
+                : "bg-white/50 hover:bg-white/80"
+                }`}
             />
           ))}
         </div>
@@ -350,18 +373,6 @@ function Details() {
             {/* Action Buttons */}
             <div className="flex items-center gap-4">
               <button
-                onClick={() => setIsFavorite(!isFavorite)}
-                className={`flex items-center gap-3 px-8 py-4 rounded-2xl font-bold transition-all ${
-                  isFavorite
-                    ? "bg-red-500 text-white shadow-lg"
-                    : "bg-white border-2 border-gray-200 text-gray-600 hover:border-red-400 hover:text-red-500"
-                }`}
-              >
-                <FaHeart className={isFavorite ? "fill-current" : ""} />
-                {isFavorite ? "Saved" : "Save to Wishlist"}
-              </button>
-
-              <button
                 onClick={() => setShowShareModal(true)}
                 className="flex items-center gap-3 px-8 py-4 bg-white border-2 border-gray-200 text-gray-600 rounded-2xl font-bold hover:border-blue-400 hover:text-blue-600 transition-all"
               >
@@ -413,11 +424,10 @@ function Details() {
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`flex-1 flex items-center justify-center gap-2 px-6 py-4 text-sm font-bold transition-all ${
-                      activeTab === tab.id
-                        ? "text-blue-600 border-b-2 border-blue-600 bg-blue-50/50"
-                        : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
-                    }`}
+                    className={`flex-1 flex items-center justify-center gap-2 px-6 py-4 text-sm font-bold transition-all ${activeTab === tab.id
+                      ? "text-blue-600 border-b-2 border-blue-600 bg-blue-50/50"
+                      : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+                      }`}
                   >
                     <span className="text-lg">{tab.icon}</span>
                     {tab.label}
@@ -620,129 +630,17 @@ function Details() {
                 </div>
 
                 <div className="p-6 space-y-6">
-                  {/* Date Selection */}
-                  <div>
-                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">
-                      Select Date
-                    </label>
-                    <div className="relative">
-                      <FaRegCalendarAlt className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-                      <input
-                        type="date"
-                        value={selectedDate}
-                        onChange={(e) => setSelectedDate(e.target.value)}
-                        className="w-full pl-12 pr-4 py-4 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-blue-400 focus:outline-none transition-all font-medium"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Time Slots */}
-                  <div>
-                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">
-                      Select Time Slot
-                    </label>
-                    <div className="grid grid-cols-2 gap-2">
-                      {timeSlots.map((slot, index) => (
-                        <button
-                          key={index}
-                          onClick={() => setSelectedTime(slot)}
-                          className={`px-3 py-3 rounded-xl text-xs font-bold transition-all ${
-                            selectedTime === slot
-                              ? "bg-blue-600 text-white"
-                              : "bg-gray-50 text-gray-600 hover:bg-gray-100"
-                          }`}
-                        >
-                          {slot}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Visitor Count */}
-                  <div>
-                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">
-                      Number of Visitors
-                    </label>
-                    <div className="flex items-center gap-3">
-                      <button
-                        onClick={() =>
-                          setVisitorCount(Math.max(1, visitorCount - 1))
-                        }
-                        className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center text-xl font-bold hover:bg-gray-200 transition-all"
-                      >
-                        -
-                      </button>
-                      <div className="flex-1 text-center">
-                        <span className="text-2xl font-bold text-gray-900">
-                          {visitorCount}
-                        </span>
-                        <span className="text-sm text-gray-500 ml-1">
-                          persons
-                        </span>
-                      </div>
-                      <button
-                        onClick={() =>
-                          setVisitorCount(Math.min(10, visitorCount + 1))
-                        }
-                        className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center text-xl font-bold hover:bg-gray-200 transition-all"
-                      >
-                        +
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Price Summary */}
-                  <div className="bg-blue-50 rounded-2xl p-5 space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">
-                        Ticket Price
-                      </span>
-                      <span className="font-bold text-gray-900">
-                        {productDetails.price}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">
-                        × {visitorCount} Person(s)
-                      </span>
-                      <span className="font-bold text-gray-900">
-                        ₹
-                        {(
-                          parseInt(
-                            productDetails.price.replace(/[^0-9]/g, ""),
-                          ) * visitorCount
-                        ).toLocaleString()}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">
-                        Taxes & Fees
-                      </span>
-                      <span className="font-bold text-gray-900">₹499</span>
-                    </div>
-                    <div className="border-t border-blue-200 pt-3">
-                      <div className="flex justify-between items-center">
-                        <span className="font-bold text-gray-900">Total</span>
-                        <span className="text-2xl font-black text-blue-600">
-                          ₹
-                          {(
-                            parseInt(
-                              productDetails.price.replace(/[^0-9]/g, ""),
-                            ) *
-                              visitorCount +
-                            499
-                          ).toLocaleString()}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
                   {/* Book Button */}
                   <Button
-                    onClick={() => navigateTo("/booking")}
+                    onClick={() => {
+                      if (productDetails?.id) {
+                        dispatch(setBookingParkId(productDetails.id));
+                      }
+                      navigateTo("/booking");
+                    }}
                     className="w-full !py-5 !rounded-2xl text-base font-bold bg-gradient-to-r from-blue-600 to-cyan-500 hover:shadow-xl"
                   >
-                    Proceed to Book
+                    Book Now
                   </Button>
 
                   {/* Availability */}
@@ -895,11 +793,10 @@ function Details() {
                 <button
                   key={index}
                   onClick={() => setSelectedImage(index)}
-                  className={`w-20 h-20 rounded-xl overflow-hidden border-2 transition-all ${
-                    selectedImage === index
-                      ? "border-blue-500 scale-110"
-                      : "border-transparent opacity-50"
-                  }`}
+                  className={`w-20 h-20 rounded-xl overflow-hidden border-2 transition-all ${selectedImage === index
+                    ? "border-blue-500 scale-110"
+                    : "border-transparent opacity-50"
+                    }`}
                 >
                   <img
                     src={img}

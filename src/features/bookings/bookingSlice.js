@@ -33,7 +33,21 @@ const bookingSlice = createSlice({
       })
       .addCase(fetchAdminBookings.fulfilled, (state, action) => {
         state.loading = false;
-        state.items = action.payload;
+        state.items = (action.payload || []).map(b => ({
+          ...b,
+          id: b.id,
+          bookingDate: b.created_at || b.createdAt,
+          date: b.booking_date || b.bookingDate,
+          userName: b.user_name || b.userName,
+          userEmail: b.user_email || b.userEmail,
+          userPhone: b.user_phone || b.userPhone,
+          parkName: b.park_id ? 'Park ID ' + String(b.park_id).substring(0, 8) : 'AquaZen Paradise',
+          slots: b.items ? b.items.filter(i => i.item_type === 'ticket').reduce((acc, curr) => acc + curr.quantity, 0) : 0,
+          amount: b.total,
+          paymentStatus: b.payment_status || 'Pending',
+          paymentMethod: 'Razorpay',
+          status: b.status || 'Pending'
+        }));
       })
       .addCase(fetchAdminBookings.rejected, (state, action) => {
         state.loading = false;

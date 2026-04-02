@@ -9,6 +9,7 @@ import {
 import { fetchParks } from "../parks/parkSlice";
 import PageHeader from "../../components/ui/PageHeader";
 import Button from "../../components/ui/Button";
+import { useAlert } from "../../context/AlertContext";
 import Table from "../../components/ui/Table";
 import Input from "../../components/ui/Input";
 import Select from "../../components/ui/Select";
@@ -40,6 +41,7 @@ import {
 
 const CouponManager = () => {
   const dispatch = useDispatch();
+  const { showAlert } = useAlert();
   const [showForm, setShowForm] = useState(false);
   const [formLoading, setFormLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -53,10 +55,12 @@ const CouponManager = () => {
     direction: "asc",
   });
 
-  const { items: coupons, loading: couponsLoading } = useSelector(
+  const { items: couponsItems, loading: couponsLoading } = useSelector(
     (state) => state.coupons,
   );
-  const { items: parks } = useSelector((state) => state.parks);
+  const { items: parksItems } = useSelector((state) => state.parks);
+  const coupons = couponsItems || [];
+  const parks = parksItems || [];
 
   const [formData, setFormData] = useState({
     couponCode: "",
@@ -71,75 +75,16 @@ const CouponManager = () => {
 
   useEffect(() => {
     dispatch(fetchCoupons());
-    if (parks.length === 0) dispatch(fetchParks());
-  }, [dispatch, parks.length]);
+    if ((parks?.length || 0) === 0) dispatch(fetchParks());
+  }, [dispatch, parks?.length]);
 
-  // Mock data for demonstration
-  const mockCoupons =
-    coupons.length > 0
-      ? coupons
-      : [
-          {
-            id: 1,
-            couponCode: "SAVE20",
-            discountType: "percentage",
-            discountValue: 20,
-            expiryDate: "2024-12-31",
-            minimumAmount: 1000,
-            applicablePark: "ALL",
-            active: true,
-            maxUses: 100,
-            used: 45,
-          },
-          {
-            id: 2,
-            couponCode: "FLAT500",
-            discountType: "fixed",
-            discountValue: 500,
-            expiryDate: "2024-11-30",
-            minimumAmount: 2500,
-            applicablePark: "1",
-            active: true,
-            maxUses: 50,
-            used: 23,
-          },
-          {
-            id: 3,
-            couponCode: "WEEKEND25",
-            discountType: "percentage",
-            discountValue: 25,
-            expiryDate: "2024-10-15",
-            minimumAmount: 1500,
-            applicablePark: "2",
-            active: false,
-            maxUses: 200,
-            used: 67,
-          },
-          {
-            id: 4,
-            couponCode: "FAMILY10",
-            discountType: "percentage",
-            discountValue: 10,
-            expiryDate: "2024-12-25",
-            minimumAmount: 3000,
-            applicablePark: "ALL",
-            active: true,
-            maxUses: 150,
-            used: 89,
-          },
-          {
-            id: 5,
-            couponCode: "WELCOME100",
-            discountType: "fixed",
-            discountValue: 100,
-            expiryDate: "2024-09-30",
-            minimumAmount: 500,
-            applicablePark: "ALL",
-            active: true,
-            maxUses: 500,
-            used: 312,
-          },
-        ];
+  // Use real data from Redux
+  const couponsData = coupons;
+
+  const totalCoupons = couponsData?.length || 0;
+  const activeCoupons = (couponsData || []).filter((c) => c.active).length;
+  const percentageCoupons = (couponsData || []).filter((c) => c.discountType === "percentage").length;
+  const fixedCoupons = (couponsData || []).filter((c) => c.discountType === "fixed").length;
 
   const handleFormChange = (e) => {
     const { name, value } = e.target;
@@ -171,7 +116,20 @@ const CouponManager = () => {
 
     setFormLoading(true);
     try {
-      await dispatch(addCoupon(formData)).unwrap();
+      // Map frontend fields to backend snake_case fields
+      const payload = {
+        code: formData.couponCode,
+        discount_type: formData.discountType,
+        discount_value: parseFloat(formData.discountValue),
+        expiry_date: new Date(formData.expiryDate).toISOString(),
+        active: true,
+      };
+
+      if (formData.applicablePark && formData.applicablePark !== "ALL") {
+        payload.applicable_park_id = formData.applicablePark;
+      }
+
+      await dispatch(addCoupon(payload)).unwrap();
       setShowForm(false);
       setFormData({
         couponCode: "",
@@ -223,8 +181,8 @@ const CouponManager = () => {
   };
 
   // Filter coupons based on search and filters
-  const filteredCoupons = mockCoupons.filter((coupon) => {
-    const matchesSearch = coupon.couponCode
+  const filteredCoupons = (couponsData || []).filter((coupon) => {
+    const matchesSearch = (coupon.couponCode || "")
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
     const matchesStatus =
@@ -249,7 +207,7 @@ const CouponManager = () => {
 
   const parkOptions = [
     { label: "All Parks", value: "ALL" },
-    ...parks.map((p) => ({ label: p.parkName, value: p.id })),
+    ...(parks || []).map((p) => ({ label: p.parkName || p.name, value: p.id })),
   ];
 
   const getParkName = (parkId) => {
@@ -264,8 +222,8 @@ const CouponManager = () => {
         <input
           type="checkbox"
           checked={
-            selectedCoupons.length === sortedCoupons.length &&
-            sortedCoupons.length > 0
+            selectedCoupons.length === (sortedCoupons?.length || 0) &&
+            (sortedCoupons?.length || 0) > 0
           }
           onChange={handleSelectAll}
           className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
@@ -379,7 +337,7 @@ const CouponManager = () => {
           <button
             onClick={() => {
               navigator.clipboard.writeText(row.couponCode);
-              alert("Coupon code copied!");
+              showAlert("Coupon code copied!", "success");
             }}
             className="w-8 h-8 rounded-lg bg-gray-100 text-gray-600 hover:bg-blue-600 hover:text-white transition-all"
             title="Copy Code"
@@ -422,11 +380,10 @@ const CouponManager = () => {
           )}
           <button
             onClick={() => setShowForm(!showForm)}
-            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 ${
-              showForm
-                ? "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                : "bg-gradient-to-r from-blue-600 to-cyan-500 text-white hover:shadow-lg"
-            }`}
+            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 ${showForm
+              ? "bg-gray-200 text-gray-700 hover:bg-gray-300"
+              : "bg-gradient-to-r from-blue-600 to-cyan-500 text-white hover:shadow-lg"
+              }`}
           >
             {showForm ? <FaTimes /> : <FaPlus />}
             {showForm ? "Cancel" : "Add Coupon"}
@@ -445,7 +402,7 @@ const CouponManager = () => {
               <FaTag />
             </div>
             <span className="text-2xl font-bold text-gray-900">
-              {mockCoupons.length}
+              {totalCoupons}
             </span>
           </div>
           <p className="text-sm text-gray-500">Total Coupons</p>
@@ -456,7 +413,7 @@ const CouponManager = () => {
               <FaCheckCircle />
             </div>
             <span className="text-2xl font-bold text-gray-900">
-              {mockCoupons.filter((c) => c.active).length}
+              {activeCoupons}
             </span>
           </div>
           <p className="text-sm text-gray-500">Active</p>
@@ -467,10 +424,7 @@ const CouponManager = () => {
               <FaPercent />
             </div>
             <span className="text-2xl font-bold text-gray-900">
-              {
-                mockCoupons.filter((c) => c.discountType === "percentage")
-                  .length
-              }
+              {percentageCoupons}
             </span>
           </div>
           <p className="text-sm text-gray-500">Percentage</p>
@@ -481,10 +435,11 @@ const CouponManager = () => {
               <FaMoneyBillWave />
             </div>
             <span className="text-2xl font-bold text-gray-900">
-              {mockCoupons.filter((c) => c.discountType === "fixed").length}
+              {fixedCoupons}
             </span>
           </div>
-          <p className="text-sm text-gray-500">Fixed Amount</p>
+          <p className="text-sm text-gray-500">Fixed Amount
+          </p>
         </div>
       </div>
 
@@ -530,11 +485,10 @@ const CouponManager = () => {
             </select>
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
-                showFilters
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
+              className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${showFilters
+                ? "bg-blue-600 text-white"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
             >
               <FaFilter />
               Filters

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   FaUsers,
   FaArrowRight,
@@ -14,39 +14,37 @@ import {
   FaCheckCircle,
 } from "react-icons/fa";
 import { GiPalmTree } from "react-icons/gi";
+import { useDispatch, useSelector } from "react-redux";
+import { setBookingDate, setBookingTime } from "../store/bookingSlice";
 import Button from "./ui/Button";
+import availabilityService from "../services/availabilityService";
 
-const DateSelectionStep = ({ bookingData, setBookingData, nextStep }) => {
-  const [selectedDate, setSelectedDate] = useState(bookingData.date);
-  const [selectedTimeSlot, setSelectedTimeSlot] = useState(null);
+const DateSelectionStep = ({ nextStep }) => {
+  const dispatch = useDispatch();
+  const { parkId, date: selectedDate, selectedTime } = useSelector((state) => state.booking);
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [showPriceBreakdown, setShowPriceBreakdown] = useState(false);
   const [selectedDayType, setSelectedDayType] = useState("weekday");
+  const [availableDates, setAvailableDates] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Sample available dates with more realistic data
-  const availableDates = [
-    "2026-03-27",
-    "2026-03-28",
-    "2026-03-29",
-    "2026-03-30",
-    "2026-02-01",
-    "2026-10-02",
-    "2026-10-03",
-    "2026-10-04",
-    "2026-10-05",
-    "2026-10-06",
-    "2026-10-07",
-    "2026-10-08",
-    "2026-10-09",
-    "2026-10-10",
-    "2026-10-11",
-    "2026-10-12",
-    "2026-10-13",
-    "2026-10-14",
-    "2026-10-15",
-    "2026-10-16",
-  ];
+  // Get parkId from some context - for now assuming a default or from state
+  useEffect(() => {
+    const fetchAvailability = async () => {
+      setLoading(true);
+      try {
+        // Mock parkId if not available, in real app it should be passed
+        const data = await availabilityService.getAvailability(parkId);
+        setAvailableDates((data || []).map(a => a?.date?.split('T')[0]).filter(Boolean));
+      } catch (error) {
+        console.error("Failed to fetch availability:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAvailability();
+  }, []);
 
   // Time slots with availability
   const timeSlots = [
@@ -203,19 +201,16 @@ const DateSelectionStep = ({ bookingData, setBookingData, nextStep }) => {
   const handleDateSelect = (date) => {
     const dateString = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-${String(date).padStart(2, "0")}`;
     if (isDateAvailable(dateString)) {
-      setSelectedDate(dateString);
-      setBookingData((prev) => ({ ...prev, date: dateString }));
-
+      dispatch(setBookingDate(dateString));
       // Reset time slot when date changes
-      setSelectedTimeSlot(null);
+      dispatch(setBookingTime(null));
     }
   };
 
   // Handle time slot selection
   const handleTimeSlotSelect = (slot) => {
     if (slot.available) {
-      setSelectedTimeSlot(slot);
-      setBookingData((prev) => ({ ...prev, selectedTime: slot.time }));
+      dispatch(setBookingTime(slot.time));
     }
   };
 
@@ -273,13 +268,7 @@ const DateSelectionStep = ({ bookingData, setBookingData, nextStep }) => {
   ];
 
   const handleContinue = () => {
-    if (selectedDate && selectedTimeSlot) {
-      setBookingData((prev) => ({
-        ...prev,
-        date: selectedDate,
-        selectedTime: selectedTimeSlot.time,
-        price: getPriceForDate(selectedDate),
-      }));
+    if (selectedDate && selectedTime) {
       nextStep();
     }
   };
@@ -399,20 +388,18 @@ const DateSelectionStep = ({ bookingData, setBookingData, nextStep }) => {
                   <button
                     onClick={() => handleDateSelect(day.day)}
                     disabled={!day.available}
-                    className={`w-full p-3 rounded-xl border-2 transition-all relative ${
-                      day.selected
-                        ? "border-blue-600 bg-blue-50"
-                        : day.available
-                          ? "border-gray-200 hover:border-blue-400 hover:shadow-md"
-                          : "border-gray-100 opacity-40 cursor-not-allowed"
-                    }`}
+                    className={`w-full p-3 rounded-xl border-2 transition-all relative ${day.selected
+                      ? "border-blue-600 bg-blue-50"
+                      : day.available
+                        ? "border-gray-200 hover:border-blue-400 hover:shadow-md"
+                        : "border-gray-100 opacity-40 cursor-not-allowed"
+                      }`}
                   >
                     {/* Date Number */}
                     <div className="text-center">
                       <span
-                        className={`text-lg font-bold ${
-                          day.selected ? "text-blue-600" : "text-gray-900"
-                        }`}
+                        className={`text-lg font-bold ${day.selected ? "text-blue-600" : "text-gray-900"
+                          }`}
                       >
                         {day.day}
                       </span>
@@ -426,9 +413,8 @@ const DateSelectionStep = ({ bookingData, setBookingData, nextStep }) => {
                     {/* Price */}
                     {day.available && (
                       <div
-                        className={`text-xs font-bold mt-1 ${
-                          day.selected ? "text-blue-600" : "text-gray-500"
-                        }`}
+                        className={`text-xs font-bold mt-1 ${day.selected ? "text-blue-600" : "text-gray-500"
+                          }`}
                       >
                         ₹{day.price}
                       </div>
@@ -470,21 +456,19 @@ const DateSelectionStep = ({ bookingData, setBookingData, nextStep }) => {
                   key={slot.id}
                   onClick={() => handleTimeSlotSelect(slot)}
                   disabled={!slot.available}
-                  className={`p-4 rounded-2xl border-2 transition-all ${
-                    selectedTimeSlot?.id === slot.id
-                      ? "border-blue-600 bg-blue-50"
-                      : slot.available
-                        ? "border-gray-200 hover:border-blue-400"
-                        : "border-gray-100 opacity-40 cursor-not-allowed"
-                  }`}
+                  className={`p-4 rounded-2xl border-2 transition-all ${selectedTime === slot.time
+                    ? "border-blue-600 bg-blue-50"
+                    : slot.available
+                      ? "border-gray-200 hover:border-blue-400"
+                      : "border-gray-100 opacity-40 cursor-not-allowed"
+                    }`}
                 >
                   <div className="flex flex-col items-center">
                     <div
-                      className={`text-2xl mb-2 ${
-                        selectedTimeSlot?.id === slot.id
-                          ? "text-blue-600"
-                          : "text-gray-600"
-                      }`}
+                      className={`text-2xl mb-2 ${selectedTime === slot.time
+                        ? "text-blue-600"
+                        : "text-gray-600"
+                        }`}
                     >
                       {slot.icon}
                     </div>
@@ -495,13 +479,12 @@ const DateSelectionStep = ({ bookingData, setBookingData, nextStep }) => {
                       {slot.time}
                     </span>
                     <span
-                      className={`text-[10px] font-bold mt-2 px-2 py-1 rounded-full ${
-                        slot.available
-                          ? slot.capacity.includes("85")
-                            ? "bg-orange-100 text-orange-600"
-                            : "bg-green-100 text-green-600"
-                          : "bg-red-100 text-red-600"
-                      }`}
+                      className={`text-[10px] font-bold mt-2 px-2 py-1 rounded-full ${slot.available
+                        ? slot.capacity.includes("85")
+                          ? "bg-orange-100 text-orange-600"
+                          : "bg-green-100 text-green-600"
+                        : "bg-red-100 text-red-600"
+                        }`}
                     >
                       {slot.capacity}
                     </span>
@@ -513,7 +496,7 @@ const DateSelectionStep = ({ bookingData, setBookingData, nextStep }) => {
         )}
 
         {/* Selected Date Summary */}
-        {selectedDate && selectedTimeSlot && (
+        {selectedDate && selectedTime && (
           <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-2xl p-6 mb-8 animate-in slide-in-from-bottom-4 duration-500">
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
               <div className="flex items-center gap-4">
@@ -531,7 +514,7 @@ const DateSelectionStep = ({ bookingData, setBookingData, nextStep }) => {
                     })}
                   </p>
                   <p className="text-sm text-gray-600 mt-1">
-                    {selectedTimeSlot.time}
+                    {selectedTime}
                   </p>
 
                   {/* Special Event Banner */}
@@ -608,7 +591,7 @@ const DateSelectionStep = ({ bookingData, setBookingData, nextStep }) => {
         {/* Continue Button */}
         <Button
           onClick={handleContinue}
-          disabled={!selectedDate || !selectedTimeSlot}
+          disabled={!selectedDate || !selectedTime}
           className="w-full !py-5 !rounded-2xl text-base font-bold bg-gradient-to-r from-blue-600 to-cyan-500 hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Continue to Ticket Selection

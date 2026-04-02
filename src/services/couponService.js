@@ -1,32 +1,27 @@
 import api from './api';
 
 const couponService = {
-  getCoupons: async () => {
-    // const response = await api.get('/coupons');
-    // return response.data;
-    
-    return [
-      { id: '1', couponCode: 'WELCOME20', discountType: 'percentage', discountValue: 20, expiryDate: '2025-12-31', active: true, applicablePark: 'ALL' },
-      { id: '2', couponCode: 'FLAT500', discountType: 'fixed', discountValue: 500, expiryDate: '2024-06-30', active: false, applicablePark: '1' },
-    ];
+  getCoupons: async (parkId) => {
+    let url = '/coupons';
+    if (parkId) {
+      url += `?parkId=${parkId}`;
+    }
+    const response = await api.get(url);
+    return response.data;
   },
 
   createCoupon: async (data) => {
-    // const response = await api.post('/coupons', data);
-    // return response.data;
-    console.log('API Service: Creating Coupon', data);
-    return { ...data, id: Date.now().toString(), active: true };
+    const response = await api.post('/admin/coupons', data);
+    return response.data;
   },
 
   deleteCoupon: async (id) => {
-    // await api.delete(`/coupons/${id}`);
-    console.log('API Service: Deleting Coupon', id);
+    await api.delete(`/admin/coupons/${id}`);
     return true;
   },
 
   toggleCoupon: async (id, status) => {
-    // await api.patch(`/coupons/${id}`, { active: !status });
-    console.log('API Service: Toggling Coupon', id, !status);
+    await api.patch(`/admin/coupons/${id}`, { active: !status });
     return true;
   }
 };

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { fetchParks } from "./parkSlice";
+import { fetchParks, deletePark } from "./parkSlice";
 import PageHeader from "../../components/ui/PageHeader";
 import Table from "../../components/ui/Table";
 import Button from "../../components/ui/Button";
@@ -23,16 +23,20 @@ import {
   FaTimes,
 } from "react-icons/fa";
 
+import AdminImageManager from "./AdminImageManager";
+
 const ParksList = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { items, loading } = useSelector((state) => state.parks);
+  const [activeTab, setActiveTab] = useState("list"); // "list" or "images"
+  const { items: parksItems, loading } = useSelector((state) => state.parks);
+  const items = parksItems || [];
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [showFilters, setShowFilters] = useState(false);
   const [selectedParks, setSelectedParks] = useState([]);
   const [sortConfig, setSortConfig] = useState({
-    key: "parkName",
+    key: "name",
     direction: "asc",
   });
 
@@ -40,62 +44,13 @@ const ParksList = () => {
     dispatch(fetchParks());
   }, [dispatch]);
 
-  // Mock data for demonstration
-  const mockParks =
-    items.length > 0
-      ? items
-      : [
-          {
-            id: 1,
-            parkName: "AquaZen Paradise",
-            location: "Lonavala, Maharashtra",
-            price: 1299,
-            rating: 4.8,
-            visitors: "45K+",
-            status: "active",
-          },
-          {
-            id: 2,
-            parkName: "Splash Kingdom",
-            location: "Goa",
-            price: 1499,
-            rating: 4.7,
-            visitors: "38K+",
-            status: "active",
-          },
-          {
-            id: 3,
-            parkName: "Wave World",
-            location: "Bangalore",
-            price: 999,
-            rating: 4.5,
-            visitors: "52K+",
-            status: "maintenance",
-          },
-          {
-            id: 4,
-            parkName: "Aqua Adventure",
-            location: "Delhi NCR",
-            price: 1199,
-            rating: 4.6,
-            visitors: "41K+",
-            status: "active",
-          },
-          {
-            id: 5,
-            parkName: "Water Haven",
-            location: "Chennai",
-            price: 1099,
-            rating: 4.4,
-            visitors: "29K+",
-            status: "inactive",
-          },
-        ];
+  // Use real data from Redux
+  const parksData = items || [];
 
-  const filteredParks = mockParks.filter((park) => {
+  const filteredParks = (parksData || []).filter((park) => {
     const matchesSearch =
-      park.parkName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      park.location.toLowerCase().includes(searchTerm.toLowerCase());
+      (park.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (park.location || "").toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter =
       filterStatus === "all" || park.status === filterStatus;
     return matchesSearch && matchesFilter;
@@ -137,7 +92,7 @@ const ParksList = () => {
 
   const handleBulkDelete = () => {
     if (window.confirm(`Delete ${selectedParks.length} selected parks?`)) {
-      // Handle bulk delete
+      selectedParks.forEach((id) => dispatch(deletePark(id)));
       setSelectedParks([]);
     }
   };
@@ -157,8 +112,8 @@ const ParksList = () => {
         <input
           type="checkbox"
           checked={
-            selectedParks.length === sortedParks.length &&
-            sortedParks.length > 0
+            selectedParks.length === (sortedParks?.length || 0) &&
+            (sortedParks?.length || 0) > 0
           }
           onChange={handleSelectAll}
           className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
@@ -184,7 +139,7 @@ const ParksList = () => {
             <FaWater />
           </div>
           <div>
-            <p className="font-bold text-gray-900">{row.parkName}</p>
+            <p className="font-bold text-gray-900">{row.name || row.parkName}</p>
             <div className="flex items-center gap-2 text-xs text-gray-500">
               <FaMapMarkerAlt className="text-blue-500" />
               <span>{row.location}</span>
@@ -232,7 +187,7 @@ const ParksList = () => {
       render: (row) => (
         <div className="flex justify-end gap-2">
           <button
-            onClick={() => navigate(`/admin/parks/${row.id}`)}
+            onClick={() => window.open(`/detail/${row.id}`, '_blank')}
             className="w-8 h-8 rounded-lg bg-gray-100 text-gray-600 hover:bg-blue-600 hover:text-white transition-all"
             title="View Details"
           >
@@ -267,9 +222,20 @@ const ParksList = () => {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Water Parks</h1>
-          <p className="text-sm text-gray-500 mt-1">
-            Manage your water park inventory and pricing
-          </p>
+          <div className="flex items-center gap-4 mt-2">
+            <button
+              onClick={() => setActiveTab("list")}
+              className={`text-sm font-bold pb-2 border-b-2 transition-all ${activeTab === "list" ? "border-blue-600 text-blue-600" : "border-transparent text-gray-400 hover:text-gray-600"}`}
+            >
+              Parks List
+            </button>
+            <button
+              onClick={() => setActiveTab("images")}
+              className={`text-sm font-bold pb-2 border-b-2 transition-all ${activeTab === "images" ? "border-blue-600 text-blue-600" : "border-transparent text-gray-400 hover:text-gray-600"}`}
+            >
+              Gallery Manager
+            </button>
+          </div>
         </div>
         <div className="flex items-center gap-3">
           {selectedParks.length > 0 && (
@@ -294,152 +260,157 @@ const ParksList = () => {
         </div>
       </div>
 
-      {/* Search and Filters */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1 relative">
-            <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search parks by name or location..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none text-sm"
-            />
-            {searchTerm && (
-              <button
-                onClick={() => setSearchTerm("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-              >
-                <FaTimes />
-              </button>
+      {activeTab === "list" ? (
+        <>
+          {/* Search and Filters */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1 relative">
+                <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search parks by name or location..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none text-sm"
+                />
+                {searchTerm && (
+                  <button
+                    onClick={() => setSearchTerm("")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    <FaTimes />
+                  </button>
+                )}
+              </div>
+              <div className="flex gap-3">
+                <select
+                  value={filterStatus}
+                  onChange={(e) => setFilterStatus(e.target.value)}
+                  className="px-4 py-2.5 border border-gray-200 rounded-lg text-sm bg-white focus:border-blue-500 focus:outline-none"
+                >
+                  <option value="all">All Status</option>
+                  <option value="active">Active</option>
+                  <option value="maintenance">Maintenance</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+                <button
+                  onClick={() => setShowFilters(!showFilters)}
+                  className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${showFilters
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    }`}
+                >
+                  <FaFilter />
+                  Filters
+                </button>
+              </div>
+            </div>
+
+            {/* Advanced Filters */}
+            {showFilters && (
+              <div className="mt-4 pt-4 border-t border-gray-200 grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">
+                    Price Range
+                  </label>
+                  <select className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm">
+                    <option>All Prices</option>
+                    <option>Under ₹1000</option>
+                    <option>₹1000 - ₹1500</option>
+                    <option>Above ₹1500</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">
+                    Rating
+                  </label>
+                  <select className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm">
+                    <option>All Ratings</option>
+                    <option>4.5+ Stars</option>
+                    <option>4.0+ Stars</option>
+                    <option>3.5+ Stars</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">
+                    Location
+                  </label>
+                  <select className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm">
+                    <option>All Locations</option>
+                    <option>Maharashtra</option>
+                    <option>Goa</option>
+                    <option>Karnataka</option>
+                    <option>Delhi NCR</option>
+                  </select>
+                </div>
+              </div>
             )}
           </div>
-          <div className="flex gap-3">
-            <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className="px-4 py-2.5 border border-gray-200 rounded-lg text-sm bg-white focus:border-blue-500 focus:outline-none"
-            >
-              <option value="all">All Status</option>
-              <option value="active">Active</option>
-              <option value="maintenance">Maintenance</option>
-              <option value="inactive">Inactive</option>
-            </select>
-            <button
-              onClick={() => setShowFilters(!showFilters)}
-              className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
-                showFilters
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
-            >
-              <FaFilter />
-              Filters
-            </button>
-          </div>
-        </div>
 
-        {/* Advanced Filters */}
-        {showFilters && (
-          <div className="mt-4 pt-4 border-t border-gray-200 grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">
-                Price Range
-              </label>
-              <select className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm">
-                <option>All Prices</option>
-                <option>Under ₹1000</option>
-                <option>₹1000 - ₹1500</option>
-                <option>Above ₹1500</option>
-              </select>
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+              <div className="flex items-center justify-between mb-2">
+                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600">
+                  <FaWater />
+                </div>
+                <span className="text-2xl font-bold text-gray-900">
+                  {items.length}
+                </span>
+              </div>
+              <p className="text-sm text-gray-500">Total Parks</p>
             </div>
-            <div>
-              <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">
-                Rating
-              </label>
-              <select className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm">
-                <option>All Ratings</option>
-                <option>4.5+ Stars</option>
-                <option>4.0+ Stars</option>
-                <option>3.5+ Stars</option>
-              </select>
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+              <div className="flex items-center justify-between mb-2">
+                <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center text-green-600">
+                  <FaTicketAlt />
+                </div>
+                <span className="text-2xl font-bold text-gray-900">
+                  {parksData.filter((p) => p.status === "active").length}
+                </span>
+              </div>
+              <p className="text-sm text-gray-500">Active Parks</p>
             </div>
-            <div>
-              <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">
-                Location
-              </label>
-              <select className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm">
-                <option>All Locations</option>
-                <option>Maharashtra</option>
-                <option>Goa</option>
-                <option>Karnataka</option>
-                <option>Delhi NCR</option>
-              </select>
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+              <div className="flex items-center justify-between mb-2">
+                <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center text-yellow-600">
+                  <FaUsers />
+                </div>
+                <span className="text-2xl font-bold text-gray-900">205K+</span>
+              </div>
+              <p className="text-sm text-gray-500">Total Visitors</p>
+            </div>
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+              <div className="flex items-center justify-between mb-2">
+                <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center text-purple-600">
+                  <FaStar />
+                </div>
+                <span className="text-2xl font-bold text-gray-900">4.6</span>
+              </div>
+              <p className="text-sm text-gray-500">Average Rating</p>
             </div>
           </div>
-        )}
-      </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-          <div className="flex items-center justify-between mb-2">
-            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600">
-              <FaWater />
-            </div>
-            <span className="text-2xl font-bold text-gray-900">
-              {mockParks.length}
-            </span>
+          {/* Table */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <Table
+              columns={columns}
+              data={sortedParks}
+              loading={loading}
+              pagination={{
+                total: sortedParks.length,
+                current: 1,
+                pageSize: 10,
+                onPageChange: (page) => console.log("Page", page),
+              }}
+              emptyMessage="No water parks found"
+            />
           </div>
-          <p className="text-sm text-gray-500">Total Parks</p>
-        </div>
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-          <div className="flex items-center justify-between mb-2">
-            <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center text-green-600">
-              <FaTicketAlt />
-            </div>
-            <span className="text-2xl font-bold text-gray-900">
-              {mockParks.filter((p) => p.status === "active").length}
-            </span>
-          </div>
-          <p className="text-sm text-gray-500">Active Parks</p>
-        </div>
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-          <div className="flex items-center justify-between mb-2">
-            <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center text-yellow-600">
-              <FaUsers />
-            </div>
-            <span className="text-2xl font-bold text-gray-900">205K+</span>
-          </div>
-          <p className="text-sm text-gray-500">Total Visitors</p>
-        </div>
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-          <div className="flex items-center justify-between mb-2">
-            <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center text-purple-600">
-              <FaStar />
-            </div>
-            <span className="text-2xl font-bold text-gray-900">4.6</span>
-          </div>
-          <p className="text-sm text-gray-500">Average Rating</p>
-        </div>
-      </div>
-
-      {/* Table */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <Table
-          columns={columns}
-          data={sortedParks}
-          loading={loading}
-          pagination={{
-            total: sortedParks.length,
-            current: 1,
-            pageSize: 10,
-            onPageChange: (page) => console.log("Page", page),
-          }}
-          emptyMessage="No water parks found"
-        />
-      </div>
+        </>
+      ) : (
+        <AdminImageManager />
+      )}
     </div>
   );
 };

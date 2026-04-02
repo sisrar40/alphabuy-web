@@ -36,7 +36,8 @@ import {
 const BookingList = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { items, loading } = useSelector((state) => state.adminBookings);
+  const { items: bookingsItems, loading } = useSelector((state) => state.adminBookings);
+  const items = bookingsItems || [];
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterPayment, setFilterPayment] = useState("all");
@@ -52,108 +53,8 @@ const BookingList = () => {
     dispatch(fetchAdminBookings());
   }, [dispatch]);
 
-  // Mock data for demonstration
-  const mockBookings =
-    items.length > 0
-      ? items
-      : [
-          {
-            id: "BKG001",
-            userName: "Rahul Sharma",
-            userEmail: "rahul@example.com",
-            userPhone: "9876543210",
-            parkName: "AquaZen Paradise",
-            parkId: "1",
-            date: "2024-03-15",
-            slots: 3,
-            amount: 3897,
-            paymentStatus: "Paid",
-            paymentMethod: "Credit Card",
-            status: "Confirmed",
-            tickets: [
-              { type: "Adult", quantity: 2, price: 1199 },
-              { type: "Child", quantity: 1, price: 899 },
-            ],
-            meals: [{ name: "Lunch Buffet", quantity: 3, price: 599 }],
-            bookingDate: "2024-03-10T10:30:00",
-            specialRequests: "Need wheelchair access",
-          },
-          {
-            id: "BKG002",
-            userName: "Priya Patel",
-            userEmail: "priya@example.com",
-            userPhone: "9876543211",
-            parkName: "Splash Kingdom",
-            parkId: "2",
-            date: "2024-03-16",
-            slots: 2,
-            amount: 2598,
-            paymentStatus: "Pending",
-            paymentMethod: "UPI",
-            status: "Pending",
-            tickets: [{ type: "Adult", quantity: 2, price: 1199 }],
-            meals: [],
-            bookingDate: "2024-03-11T14:20:00",
-            specialRequests: "",
-          },
-          {
-            id: "BKG003",
-            userName: "Amit Kumar",
-            userEmail: "amit@example.com",
-            userPhone: "9876543212",
-            parkName: "Wave World",
-            parkId: "3",
-            date: "2024-03-14",
-            slots: 4,
-            amount: 5196,
-            paymentStatus: "Paid",
-            paymentMethod: "Debit Card",
-            status: "Confirmed",
-            tickets: [
-              { type: "Adult", quantity: 3, price: 1199 },
-              { type: "Child", quantity: 1, price: 899 },
-            ],
-            meals: [{ name: "Family Pack", quantity: 1, price: 1999 }],
-            bookingDate: "2024-03-09T09:15:00",
-            specialRequests: "Birthday celebration",
-          },
-          {
-            id: "BKG004",
-            userName: "Sneha Reddy",
-            userEmail: "sneha@example.com",
-            userPhone: "9876543213",
-            parkName: "AquaZen Paradise",
-            parkId: "1",
-            date: "2024-03-17",
-            slots: 2,
-            amount: 2398,
-            paymentStatus: "Paid",
-            paymentMethod: "PayPal",
-            status: "Confirmed",
-            tickets: [{ type: "Adult", quantity: 2, price: 1199 }],
-            meals: [{ name: "Premium Lunch", quantity: 2, price: 799 }],
-            bookingDate: "2024-03-12T16:45:00",
-            specialRequests: "",
-          },
-          {
-            id: "BKG005",
-            userName: "Vikram Singh",
-            userEmail: "vikram@example.com",
-            userPhone: "9876543214",
-            parkName: "Splash Kingdom",
-            parkId: "2",
-            date: "2024-03-13",
-            slots: 1,
-            amount: 1199,
-            paymentStatus: "Failed",
-            paymentMethod: "Credit Card",
-            status: "Cancelled",
-            tickets: [{ type: "Adult", quantity: 1, price: 1199 }],
-            meals: [],
-            bookingDate: "2024-03-08T11:30:00",
-            specialRequests: "",
-          },
-        ];
+  // Use real data from Redux
+  const bookingsData = items || [];
 
   const handleStatusChange = (id, newStatus) => {
     dispatch(updateBookingStatus({ id, status: newStatus }));
@@ -201,11 +102,11 @@ const BookingList = () => {
   };
 
   // Filter bookings
-  const filteredBookings = mockBookings.filter((booking) => {
+  const filteredBookings = (bookingsData || []).filter((booking) => {
     const matchesSearch =
-      booking.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      booking.userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      booking.parkName.toLowerCase().includes(searchTerm.toLowerCase());
+      (booking.id || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (booking.userName || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (booking.parkName || "").toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesStatus =
       filterStatus === "all" || booking.status === filterStatus;
@@ -265,8 +166,8 @@ const BookingList = () => {
         <input
           type="checkbox"
           checked={
-            selectedBookings.length === filteredBookings.length &&
-            filteredBookings.length > 0
+            selectedBookings.length === (filteredBookings?.length || 0) &&
+            (filteredBookings?.length || 0) > 0
           }
           onChange={handleSelectAll}
           className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
@@ -298,12 +199,14 @@ const BookingList = () => {
         <div>
           <span className="font-bold text-gray-900">{row.id}</span>
           <p className="text-xs text-gray-500 mt-1">
-            {new Date(row.bookingDate).toLocaleString("en-IN", {
-              hour: "2-digit",
-              minute: "2-digit",
-              day: "numeric",
-              month: "short",
-            })}
+            {row.bookingDate && !isNaN(new Date(row.bookingDate).getTime()) ? (
+              new Date(row.bookingDate).toLocaleString("en-IN", {
+                hour: "2-digit",
+                minute: "2-digit",
+                day: "numeric",
+                month: "short",
+              })
+            ) : "N/A"}
           </p>
         </div>
       ),
@@ -321,7 +224,7 @@ const BookingList = () => {
       render: (row) => (
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold">
-            {row.userName.charAt(0)}
+            {(row.userName || "U").charAt(0)}
           </div>
           <div>
             <p className="font-bold text-gray-900">{row.userName}</p>
@@ -384,10 +287,10 @@ const BookingList = () => {
       ),
       render: (row) => (
         <div>
-          <p className="font-bold text-gray-900">₹{row.amount}</p>
-          <div className="flex items-center gap-1 mt-1">
-            {getPaymentBadge(row.paymentStatus)}
-            <span className="text-xs text-gray-400">{row.paymentMethod}</span>
+          <p className="font-bold text-gray-900">₹{row.total || row.amount}</p>
+          <div className="flex items-center gap-1 mt-1 uppercase">
+            {getPaymentBadge(row.paymentStatus || row.payment_status)}
+            <span className="text-[10px] font-black text-gray-400">{row.payment_method || row.paymentMethod || "Razorpay"}</span>
           </div>
         </div>
       ),
@@ -400,12 +303,11 @@ const BookingList = () => {
           onChange={(e) => handleStatusChange(row.id, e.target.value)}
           className={`
             px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider outline-none border transition-all cursor-pointer
-            ${
-              row.status === "Confirmed"
-                ? "bg-green-50 text-green-700 border-green-200"
-                : row.status === "Cancelled"
-                  ? "bg-red-50 text-red-700 border-red-200"
-                  : "bg-yellow-50 text-yellow-700 border-yellow-200"
+            ${row.status === "Confirmed"
+              ? "bg-green-50 text-green-700 border-green-200"
+              : row.status === "Cancelled"
+                ? "bg-red-50 text-red-700 border-red-200"
+                : "bg-yellow-50 text-yellow-700 border-yellow-200"
             }
           `}
         >
@@ -448,12 +350,12 @@ const BookingList = () => {
   ];
 
   // Summary stats
-  const totalBookings = mockBookings.length;
-  const totalRevenue = mockBookings.reduce((sum, b) => sum + b.amount, 0);
-  const confirmedBookings = mockBookings.filter(
+  const totalBookings = bookingsData?.length || 0;
+  const totalRevenue = (bookingsData || []).reduce((sum, b) => sum + (b.amount || 0), 0);
+  const confirmedBookings = (bookingsData || []).filter(
     (b) => b.status === "Confirmed",
   ).length;
-  const pendingBookings = mockBookings.filter(
+  const pendingBookings = (bookingsData || []).filter(
     (b) => b.status === "Pending",
   ).length;
 
@@ -585,11 +487,10 @@ const BookingList = () => {
             </select>
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
-                showFilters
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
+              className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${showFilters
+                ? "bg-blue-600 text-white"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
             >
               <FaFilter />
               Filters

@@ -6,141 +6,381 @@ import {
   FaLock,
   FaCreditCard,
   FaMobile,
-  FaGooglePay,
-  FaAmazonPay,
-  FaPaypal,
   FaWallet,
   FaCheckCircle,
   FaExclamationCircle,
-  FaInfoCircle,
-  FaQrcode,
-  FaPhone,
-  FaEnvelope,
-  FaUser,
   FaCalendarCheck,
-  FaClock,
   FaTicketAlt,
   FaUtensils,
-  FaWater,
-  FaStar,
   FaGift,
-  FaPercent,
-  FaCrown,
-  FaBolt,
-  FaLeaf,
-  FaRegClock,
-  FaRegCalendarAlt,
-  FaRegCreditCard,
-  FaRegCheckCircle,
-  FaRegStar,
-  FaRegHeart,
-  FaHeart,
   FaChevronDown,
-  FaChevronUp,
-  FaPlus,
-  FaMinus,
-  FaTrash,
-  FaEdit,
-  FaSave,
-  FaPrint,
-  FaDownload,
-  FaShare,
-  FaCopy,
   FaQrcode as FaQrCode,
+  FaPlus
 } from "react-icons/fa";
-import {
-  GiLifeBuoy,
-  GiSpeedBoat,
-  GiWaterfall,
-  GiPalmTree,
-  GiWaveSurfer,
-  GiBeachBall,
-} from "react-icons/gi";
-import { useDispatch } from "react-redux";
+
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import {
   setBookingDate,
   setBookingTickets,
   setBookingMeals,
   setPaymentDetails,
+  setUserInfo,
+  setSelectedCoupon,
+  calculateBookingTotal,
 } from "../store/bookingSlice";
+import { fetchCoupons } from "../features/coupons/couponSlice";
 import Button from "./ui/Button";
 import { useRazorpay } from "react-razorpay";
+import bookingService from "../services/bookingService";
+import leadService from "../services/leadService";
+import userService from "../services/userService";
+import { useAlert } from '../context/AlertContext';
+import { fetchWallet, deductFromWallet } from '../features/wallet/walletSlice';
+import { setAuthModal } from '../features/auth/authSlice';
 
-const PaymentStep = ({ bookingData, setBookingData, prevStep }) => {
-  const [paymentMethod, setPaymentMethod] = useState("card");
-  const [showUpiApps, setShowUpiApps] = useState(false);
-  const [cardDetails, setCardDetails] = useState({
-    number: "",
-    expiry: "",
-    cvv: "",
-    name: "",
-  });
-  const [upiId, setUpiId] = useState("");
-  const [acceptedTerms, setAcceptedTerms] = useState(false);
-  const [processing, setProcessing] = useState(false);
-  const [showSecurityTip, setShowSecurityTip] = useState(true);
-
+const PaymentStep = ({ prevStep }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { Razorpay } = useRazorpay();
 
-  const calculateTotal = () => {
-    const ticketsTotal = (bookingData.tickets || []).reduce((total, ticket) => {
-      return total + (ticket.quantity || ticket.count || 0) * 1000;
-    }, 0);
+  const bookingData = useSelector((state) => state.booking);
+  const {
+    userInfo,
+    pricing,
+    selectedCoupon,
+    tickets,
+    meals,
+    date: bookingDate,
+    selectedTime: bookingTime,
+    availableTicketTypes,
+    availableMeals,
+    availableAddOns,
+    selectedAddOns
+  } = bookingData;
 
-    const mealsTotal = (bookingData.meals || []).reduce((total, meal) => {
-      return total + (meal.count || 0) * 500;
-    }, 0);
+  const [processing, setProcessing] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(true);
+  const [showSecurityTip, setShowSecurityTip] = useState(true);
+  const [leadId, setLeadId] = useState(null);
+  const [paymentMethod, setPaymentMethod] = useState('razorpay'); // 'razorpay' | 'wallet'
+  const { token } = useSelector((state) => state.auth);
 
-    return ticketsTotal + mealsTotal;
+  useEffect(() => {
+    if (!token && paymentMethod === 'wallet') {
+      setPaymentMethod('razorpay');
+    }
+  }, [token, paymentMethod]);
+  const { wallet } = useSelector((state) => state.wallet);
+  const walletBalance = wallet?.balance ?? 0;
+  const walletId = wallet?.id;
+
+  useEffect(() => {
+    if (token) dispatch(fetchWallet(token));
+  }, [dispatch, token]);
+
+  const TICKET_TYPES = availableTicketTypes || [];
+  const MEAL_PLANS = availableMeals || [];
+  const ADD_ONS = availableAddOns || [];
+
+  const handleInfoChange = (e) => {
+    const { name, value } = e.target;
+    dispatch(setUserInfo({ ...userInfo, [name]: value }));
   };
 
-  const handlePayment = () => {
+  const handleContactBlur = async (e) => {
+    const { name, value } = e.target;
+    if (!value || value.length < 5) return;
+
+    if (name === "email" || name === "phone") {
+      try {
+        const emailToSearch = name === "email" ? value : "";
+        const phoneToSearch = name === "phone" ? value : "";
+
+        const data = await userService.lookupUser(emailToSearch, phoneToSearch);
+        if (data) {
+          dispatch(setUserInfo({
+            ...userInfo,
+            name: userInfo.name || data.name || "",
+            address: userInfo.address || data.address || "",
+            city: userInfo.city || data.city || "",
+            state: userInfo.state || data.state || "",
+            zip: userInfo.zip || data.zip || "",
+            ...(name === "email" && { phone: userInfo.phone || data.phone || "" }),
+            ...(name === "phone" && { email: userInfo.email || data.email || "" })
+          }));
+          showAlert("Found past details and auto-filled form", "success");
+        }
+      } catch (error) {
+        // Silently ignore if not found
+      }
+    }
+  };
+
+  const renderedTickets = tickets.map((t, i) => {
+    const details = TICKET_TYPES.find(tt => tt.id === (t.id || t.type));
+    return (
+      <div key={i} className="flex justify-between items-center text-sm mb-1">
+        <span className="text-gray-600">{details?.name || (t.id || t.type)} x {t.quantity || t.count}</span>
+        <span className="font-bold text-gray-900">₹{((details?.price || 0) * (t.quantity || t.count)).toFixed(2)}</span>
+      </div>
+    );
+  });
+
+  const renderedMeals = meals.map((m, i) => {
+    const mealId = typeof m === 'string' ? m : (m.id || m.type);
+    const details = MEAL_PLANS.find(mp => mp.id === mealId);
+    return (
+      <div key={i} className="flex justify-between items-center text-sm mb-1">
+        <span className="text-gray-600">{details?.name || mealId}</span>
+        <span className="font-bold text-gray-900">₹{(details?.price || 0).toFixed(2)}</span>
+      </div>
+    );
+  });
+
+  const renderedAddOns = (selectedAddOns || []).map((aoId, i) => {
+    const details = ADD_ONS.find(ao => ao.id === aoId);
+    return (
+      <div key={i} className="flex justify-between items-center text-sm mb-1">
+        <span className="text-gray-600">{details?.name || aoId}</span>
+        <span className="font-bold text-gray-900">₹{(details?.price || 0).toFixed(2)}</span>
+      </div>
+    );
+  });
+
+  const { items: availableCoupons } = useSelector((state) => state.coupons);
+
+  useEffect(() => {
+    dispatch(fetchCoupons(bookingData.parkId));
+  }, [dispatch, bookingData.parkId]);
+
+  // ── Wallet pay handler (Refactored for Top-up & Pay) ────────────────────────
+  const handleWalletPayment = async () => {
     if (!acceptedTerms) {
-      alert("Please accept the terms and conditions to proceed");
+      showAlert("Please accept the terms and conditions", "error");
+      return;
+    }
+
+    const finalAmount = parseFloat(pricing.total.toFixed(2));
+
+    // If insufficient balance, initiate Top-up first
+    if (walletBalance < finalAmount) {
+      const topupAmount = finalAmount - walletBalance;
+      setProcessing(true);
+
+      const options = {
+        key: "rzp_test_SLwkA3iHaRKsMN",
+        amount: Math.round(topupAmount * 100),
+        currency: "INR",
+        name: "AquaZen Wallet Top-up",
+        description: `Top-up for booking payment`,
+        handler: async (response) => {
+          try {
+            // 1. Add funds to wallet
+            await dispatch(addFundsToWallet({
+              token,
+              amount: topupAmount,
+              referenceId: response.razorpay_payment_id,
+              description: "Booking top-up"
+            })).unwrap();
+
+            // 2. Proceed with Wallet Payment (now balance is sufficient)
+            await executeWalletDebitAndBooking(finalAmount);
+          } catch (err) {
+            showAlert("Top-up successful but booking failed. Please try paying via wallet again.", "warning");
+            setProcessing(false);
+          }
+        },
+        modal: { ondismiss: () => setProcessing(false) },
+        prefill: { name: userInfo.name, email: userInfo.email, contact: userInfo.phone },
+        theme: { color: "#0891b2" }
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
       return;
     }
 
     setProcessing(true);
-    const total = calculateTotal();
-    const finalAmount = (total * 1.18).toFixed(0);
+    await executeWalletDebitAndBooking(finalAmount);
+  };
+
+  const executeWalletDebitAndBooking = async (amount) => {
+    try {
+      // Deduct from wallet
+      await dispatch(deductFromWallet({
+        token,
+        amount: amount,
+        description: `Booking payment for ${bookingDate}`,
+        referenceId: `BK-${Date.now()}`,
+      })).unwrap();
+
+      // Create booking record
+      const bookingPayload = {
+        user_name: userInfo.name,
+        user_email: userInfo.email,
+        user_phone: userInfo.phone,
+        address: userInfo.address,
+        city: userInfo.city,
+        state: userInfo.state,
+        zip: userInfo.zip,
+        booking_date: bookingDate ? new Date(bookingDate).toISOString() : new Date().toISOString(),
+        booking_time: bookingTime?.time || bookingTime || "",
+        subtotal: pricing.subtotal,
+        tax: pricing.tax,
+        discount: pricing.discount,
+        total: pricing.total,
+        payment_status: "completed",
+        payment_method: "Wallet", // Updated
+        transaction_id: `WALLET-${Date.now()}`,
+        coupon_id: selectedCoupon?.id,
+        items: [
+          ...tickets.map(t => ({
+            item_type: 'ticket',
+            item_id: t.id || t.type,
+            quantity: t.quantity || t.count,
+            price: TICKET_TYPES.find(tt => tt.id === (t.id || t.type))?.price || 0
+          })),
+          ...meals.map(m => {
+            const mealId = typeof m === 'string' ? m : (m.id || m.type);
+            return { item_type: 'meal', item_id: mealId, quantity: 1, price: MEAL_PLANS.find(mp => mp.id === mealId)?.price || 0 };
+          }),
+          ...(bookingData.selectedAddOns || []).map(aoId => ({
+            item_type: 'addon',
+            item_id: aoId,
+            quantity: 1,
+            price: ADD_ONS.find(ao => ao.id === aoId)?.price || 0
+          }))
+        ],
+      };
+      await bookingService.createBooking(bookingPayload);
+      dispatch(setPaymentDetails({ transactionId: `WALLET-${Date.now()}`, amount: amount, method: 'Wallet', status: 'completed' }));
+      showAlert("Payment successful via Wallet!", "success");
+      navigate("/booking-details");
+    } catch (err) {
+      showAlert(err || "Wallet payment failed", "error");
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const handlePayment = async () => {
+    if (!acceptedTerms) {
+      showAlert("Please accept the terms and conditions to proceed", "error");
+      return;
+    }
+
+    setProcessing(true);
+
+    // Create lead before initializing payment
+    try {
+      const lead = await leadService.createLead({
+        name: userInfo.name,
+        email: userInfo.email,
+        phone: userInfo.phone,
+        park_id: bookingData.parkId,
+        message: `Booking attempt for ${bookingDate} with total ₹${pricing.total.toFixed(2)}`,
+        status: "new"
+      });
+      if (lead && lead.id) {
+        setLeadId(lead.id);
+      }
+    } catch (error) {
+      console.error("Failed to capture lead:", error);
+      // Continue with payment even if lead capture fails
+    }
+
+    const finalAmount = pricing.total.toFixed(2);
 
     const options = {
-      //test key -> rzp_test_SLwkA3iHaRKsMN
-      //test key -> SLMc29e7iu2MrphAVe15U3oy
       key: "rzp_test_SLwkA3iHaRKsMN",
       amount: finalAmount * 100,
       currency: "INR",
       name: "AquaZen Water Park",
       description: "Premium Water Park Tickets",
       image: "https://cdn-icons-png.flaticon.com/512/414/414927.png",
-      handler: (response) => {
-        setProcessing(false);
+      handler: async (response) => {
         const transactionId = response.razorpay_payment_id;
 
-        dispatch(setBookingDate(bookingData.date));
-        dispatch(setBookingTickets(bookingData.tickets));
-        dispatch(setBookingMeals(bookingData.meals));
-        dispatch(
-          setPaymentDetails({
-            transactionId,
-            amount: finalAmount,
-            method: paymentMethod,
-            status: "completed",
-          }),
-        );
+        try {
+          // Delete lead if payment is successful
+          if (leadId) {
+            try {
+              await leadService.deleteLead(leadId);
+            } catch (leadError) {
+              console.error("Failed to delete lead after payment:", leadError);
+            }
+          }
 
-        navigate("/booking-details");
+          // Construct backend booking payload
+          const bookingPayload = {
+            user_name: userInfo.name,
+            user_email: userInfo.email,
+            user_phone: userInfo.phone,
+            address: userInfo.address,
+            city: userInfo.city,
+            state: userInfo.state,
+            zip: userInfo.zip,
+            booking_date: bookingDate ? new Date(bookingDate).toISOString() : new Date().toISOString(),
+            booking_time: bookingTime?.time || bookingTime || "",
+            subtotal: pricing.subtotal,
+            tax: pricing.tax,
+            discount: pricing.discount,
+            total: pricing.total,
+            payment_status: "completed",
+            transaction_id: transactionId,
+            coupon_id: selectedCoupon?.id,
+            items: [
+              ...tickets.map(t => ({
+                item_type: 'ticket',
+                item_id: t.id || t.type,
+                quantity: t.quantity || t.count,
+                price: TICKET_TYPES.find(tt => tt.id === (t.id || t.type))?.price || 0
+              })),
+              ...meals.map(m => {
+                const mealId = typeof m === 'string' ? m : (m.id || m.type);
+                return {
+                  item_type: 'meal',
+                  item_id: mealId,
+                  quantity: 1,
+                  price: MEAL_PLANS.find(mp => mp.id === mealId)?.price || 0
+                };
+              }),
+              ...(bookingData.selectedAddOns || []).map(aoId => ({
+                item_type: 'addon',
+                item_id: aoId,
+                quantity: 1,
+                price: ADD_ONS.find(ao => ao.id === aoId)?.price || 0
+              }))
+            ]
+          };
+
+          await bookingService.createBooking(bookingPayload);
+
+          dispatch(
+            setPaymentDetails({
+              transactionId,
+              amount: finalAmount,
+              method: 'Razorpay',
+              status: "completed",
+            }),
+          );
+
+          navigate("/booking-details");
+        } catch (error) {
+          console.error("Booking submission error:", error);
+          showAlert("Booking failed. Please contact support with Transaction ID: " + transactionId, "error");
+        } finally {
+          setProcessing(false);
+        }
       },
       prefill: {
-        name: bookingData.guestName || "Water Park Guest",
-        email: bookingData.guestEmail || "guest@waterpark.com",
-        contact: bookingData.guestPhone || "9999999999",
+        name: userInfo.name || "Guest",
+        email: userInfo.email || "",
+        contact: userInfo.phone || "",
       },
       theme: {
-        color: "#0891b2", // cyan-600
+        color: "#2563EB",
       },
       modal: {
         ondismiss: () => {
@@ -152,84 +392,14 @@ const PaymentStep = ({ bookingData, setBookingData, prevStep }) => {
     const rzp1 = new Razorpay(options);
     rzp1.on("payment.failed", (response) => {
       setProcessing(false);
-      alert("Payment Failed: " + response.error.description);
+      showAlert("Payment Failed: " + response.error.description, "error");
     });
     rzp1.open();
   };
 
-  const formatCardNumber = (value) => {
-    const v = value.replace(/\s+/g, "").replace(/[^0-9]/gi, "");
-    const matches = v.match(/\d{4,16}/g);
-    const match = (matches && matches[0]) || "";
-    const parts = [];
-    for (let i = 0; i < match.length; i += 4) {
-      parts.push(match.substring(i, i + 4));
-    }
-    if (parts.length) {
-      return parts.join(" ");
-    } else {
-      return value;
-    }
-  };
 
-  const handleCardChange = (field, value) => {
-    if (field === "number") {
-      value = formatCardNumber(value);
-    }
-    if (field === "expiry") {
-      value = value.replace(/[^0-9]/g, "");
-      if (value.length >= 2) {
-        value = value.substring(0, 2) + "/" + value.substring(2, 4);
-      }
-    }
-    if (field === "cvv") {
-      value = value.replace(/[^0-9]/g, "").substring(0, 3);
-    }
-    setCardDetails((prev) => ({ ...prev, [field]: value }));
-  };
 
-  const totalAmount = calculateTotal();
-  const finalAmount = (totalAmount * 1.18).toFixed(0);
-  const gstAmount = (totalAmount * 0.18).toFixed(0);
 
-  const upiApps = [
-    {
-      id: "gpay",
-      name: "Google Pay",
-      icon: "📱",
-      color: "from-blue-500 to-blue-600",
-    },
-    {
-      id: "phonepe",
-      name: "PhonePe",
-      icon: "📱",
-      color: "from-purple-500 to-purple-600",
-    },
-    {
-      id: "paytm",
-      name: "Paytm",
-      icon: "📱",
-      color: "from-blue-400 to-blue-500",
-    },
-    {
-      id: "amazonpay",
-      name: "Amazon Pay",
-      icon: "📱",
-      color: "from-orange-500 to-orange-600",
-    },
-    {
-      id: "bhim",
-      name: "BHIM UPI",
-      icon: "📱",
-      color: "from-red-500 to-red-600",
-    },
-    {
-      id: "whatsapp",
-      name: "WhatsApp Pay",
-      icon: "📱",
-      color: "from-green-500 to-green-600",
-    },
-  ];
 
   return (
     <div className="bg-white rounded-4xl shadow-2xl overflow-hidden">
@@ -303,278 +473,140 @@ const PaymentStep = ({ bookingData, setBookingData, prevStep }) => {
         )}
 
         <div className="grid lg:grid-cols-12 gap-8">
-          {/* Left Column - Payment Methods */}
+          {/* Left Column - Forms */}
           <div className="lg:col-span-8 space-y-6">
-            {/* Payment Method Selection */}
+
+            {/* Available Coupons Section */}
             <div className="bg-white rounded-3xl border border-gray-200 p-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">
-                Select Payment Method
+              <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <FaGift className="text-cyan-600" />
+                Available Coupons
               </h3>
-
-              <div className="grid grid-cols-3 gap-3 mb-6">
-                <button
-                  onClick={() => setPaymentMethod("card")}
-                  className={`p-4 rounded-xl border-2 transition-all ${
-                    paymentMethod === "card"
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {availableCoupons?.filter(c => c.active).map((coupon) => (
+                  <button
+                    key={coupon.id}
+                    onClick={() => {
+                      dispatch(setSelectedCoupon(selectedCoupon?.id === coupon.id ? null : coupon));
+                      dispatch(calculateBookingTotal());
+                    }}
+                    className={`p-4 rounded-2xl border-2 transition-all text-left flex items-start gap-4 ${selectedCoupon?.id === coupon.id
                       ? "border-cyan-600 bg-cyan-50"
-                      : "border-gray-200 hover:border-cyan-300"
-                  }`}
-                >
-                  <FaCreditCard
-                    className={`text-2xl mx-auto mb-2 ${paymentMethod === "card" ? "text-cyan-600" : "text-gray-400"}`}
-                  />
-                  <span
-                    className={`text-xs font-bold block ${paymentMethod === "card" ? "text-cyan-600" : "text-gray-600"}`}
+                      : "border-gray-100 hover:border-cyan-200"
+                      }`}
                   >
-                    Card
-                  </span>
-                </button>
-
-                <button
-                  onClick={() => setPaymentMethod("upi")}
-                  className={`p-4 rounded-xl border-2 transition-all ${
-                    paymentMethod === "upi"
-                      ? "border-cyan-600 bg-cyan-50"
-                      : "border-gray-200 hover:border-cyan-300"
-                  }`}
-                >
-                  <FaMobile
-                    className={`text-2xl mx-auto mb-2 ${paymentMethod === "upi" ? "text-cyan-600" : "text-gray-400"}`}
-                  />
-                  <span
-                    className={`text-xs font-bold block ${paymentMethod === "upi" ? "text-cyan-600" : "text-gray-600"}`}
-                  >
-                    UPI
-                  </span>
-                </button>
-
-                <button
-                  onClick={() => setPaymentMethod("wallet")}
-                  className={`p-4 rounded-xl border-2 transition-all ${
-                    paymentMethod === "wallet"
-                      ? "border-cyan-600 bg-cyan-50"
-                      : "border-gray-200 hover:border-cyan-300"
-                  }`}
-                >
-                  <FaWallet
-                    className={`text-2xl mx-auto mb-2 ${paymentMethod === "wallet" ? "text-cyan-600" : "text-gray-400"}`}
-                  />
-                  <span
-                    className={`text-xs font-bold block ${paymentMethod === "wallet" ? "text-cyan-600" : "text-gray-600"}`}
-                  >
-                    Wallet
-                  </span>
-                </button>
+                    <div className={`p-2 rounded-xl ${selectedCoupon?.id === coupon.id ? 'bg-cyan-600 text-white' : 'bg-gray-100 text-gray-400'}`}>
+                      <FaTicketAlt />
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-sm font-black text-slate-900">{coupon.couponCode}</span>
+                        {selectedCoupon?.id === coupon.id && <FaCheckCircle className="text-cyan-600 text-xs" />}
+                      </div>
+                      <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                        {coupon.discountType === 'percentage' ? `${coupon.discountValue}% OFF` : `₹${coupon.discountValue} FLAT`}
+                      </p>
+                    </div>
+                  </button>
+                ))}
+                {availableCoupons?.length === 0 && (
+                  <p className="text-xs text-slate-400 col-span-2 text-center py-4">No coupons currently available.</p>
+                )}
               </div>
-
-              {/* Card Payment Form */}
-              {paymentMethod === "card" && (
-                <div className="space-y-4 animate-in slide-in-from-bottom-4 duration-500">
-                  <div>
-                    <label className="text-xs font-bold text-gray-600 mb-1 block">
-                      Card Number
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        value={cardDetails.number}
-                        onChange={(e) =>
-                          handleCardChange("number", e.target.value)
-                        }
-                        placeholder="1234 5678 9012 3456"
-                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-cyan-600 focus:outline-none transition-all font-mono"
-                        maxLength="19"
-                      />
-                      <div className="absolute right-3 top-1/2 -translate-y-1/2 flex gap-1">
-                        <div className="w-8 h-5 bg-red-500 rounded"></div>
-                        <div className="w-8 h-5 bg-blue-600 rounded"></div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-xs font-bold text-gray-600 mb-1 block">
-                        Expiry Date
-                      </label>
-                      <input
-                        type="text"
-                        value={cardDetails.expiry}
-                        onChange={(e) =>
-                          handleCardChange("expiry", e.target.value)
-                        }
-                        placeholder="MM/YY"
-                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-cyan-600 focus:outline-none transition-all"
-                        maxLength="5"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs font-bold text-gray-600 mb-1 block">
-                        CVV
-                      </label>
-                      <input
-                        type="password"
-                        value={cardDetails.cvv}
-                        onChange={(e) =>
-                          handleCardChange("cvv", e.target.value)
-                        }
-                        placeholder="•••"
-                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-cyan-600 focus:outline-none transition-all"
-                        maxLength="3"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="text-xs font-bold text-gray-600 mb-1 block">
-                      Cardholder Name
-                    </label>
-                    <input
-                      type="text"
-                      value={cardDetails.name}
-                      onChange={(e) =>
-                        setCardDetails((prev) => ({
-                          ...prev,
-                          name: e.target.value,
-                        }))
-                      }
-                      placeholder="As shown on card"
-                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-cyan-600 focus:outline-none transition-all"
-                    />
-                  </div>
-
-                  <div className="flex items-center gap-2 text-xs text-gray-500 mt-2">
-                    <FaShieldAlt className="text-green-500" />
-                    <span>Your card details are securely encrypted</span>
-                  </div>
-                </div>
-              )}
-
-              {/* UPI Payment Form */}
-              {paymentMethod === "upi" && (
-                <div className="space-y-4 animate-in slide-in-from-bottom-4 duration-500">
-                  <div>
-                    <label className="text-xs font-bold text-gray-600 mb-1 block">
-                      UPI ID
-                    </label>
-                    <input
-                      type="text"
-                      value={upiId}
-                      onChange={(e) => setUpiId(e.target.value)}
-                      placeholder="username@okhdfcbank"
-                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-cyan-600 focus:outline-none transition-all"
-                    />
-                  </div>
-
-                  <div className="relative">
-                    <button
-                      onClick={() => setShowUpiApps(!showUpiApps)}
-                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl flex items-center justify-between text-gray-600 hover:border-cyan-300 transition-all"
-                    >
-                      <span>Or choose UPI app</span>
-                      <FaChevronDown
-                        className={`transition-transform ${showUpiApps ? "rotate-180" : ""}`}
-                      />
-                    </button>
-
-                    {showUpiApps && (
-                      <div className="absolute top-full left-0 right-0 mt-2 bg-white border-2 border-gray-200 rounded-xl shadow-xl z-10 p-2 animate-in slide-in-from-top-2 duration-300">
-                        <div className="grid grid-cols-2 gap-2">
-                          {upiApps.map((app) => (
-                            <button
-                              key={app.id}
-                              onClick={() => {
-                                setUpiId(`user@${app.id}`);
-                                setShowUpiApps(false);
-                              }}
-                              className={`p-3 rounded-xl bg-gradient-to-r ${app.color} text-white flex items-center gap-2 hover:opacity-90 transition-all`}
-                            >
-                              <span className="text-xl">{app.icon}</span>
-                              <span className="text-xs font-bold">
-                                {app.name}
-                              </span>
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="bg-gray-50 rounded-xl p-4 text-center">
-                    <FaQrCode className="text-4xl text-gray-400 mx-auto mb-2" />
-                    <p className="text-xs text-gray-600">
-                      Scan QR code with any UPI app
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {/* Wallet Payment Form */}
-              {paymentMethod === "wallet" && (
-                <div className="space-y-4 animate-in slide-in-from-bottom-4 duration-500">
-                  <div className="grid grid-cols-2 gap-3">
-                    <button className="p-4 border-2 border-gray-200 rounded-xl hover:border-cyan-300 hover:bg-cyan-50 transition-all">
-                      <span className="block text-2xl mb-2">🪙</span>
-                      <span className="text-xs font-bold">Paytm Wallet</span>
-                    </button>
-                    <button className="p-4 border-2 border-gray-200 rounded-xl hover:border-cyan-300 hover:bg-cyan-50 transition-all">
-                      <span className="block text-2xl mb-2">💰</span>
-                      <span className="text-xs font-bold">PhonePe Wallet</span>
-                    </button>
-                    <button className="p-4 border-2 border-gray-200 rounded-xl hover:border-cyan-300 hover:bg-cyan-50 transition-all">
-                      <span className="block text-2xl mb-2">💎</span>
-                      <span className="text-xs font-bold">Amazon Pay</span>
-                    </button>
-                    <button className="p-4 border-2 border-gray-200 rounded-xl hover:border-cyan-300 hover:bg-cyan-50 transition-all">
-                      <span className="block text-2xl mb-2">⭐</span>
-                      <span className="text-xs font-bold">Mobikwik</span>
-                    </button>
-                  </div>
-                </div>
-              )}
             </div>
 
-            {/* Guest Information */}
+            {/* Contact Information */}
             <div className="bg-white rounded-3xl border border-gray-200 p-6">
               <h3 className="text-lg font-bold text-gray-900 mb-4">
                 Contact Information
               </h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs font-bold text-gray-600 mb-1 block">
-                    Full Name
-                  </label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Full Name</label>
                   <input
                     type="text"
+                    name="name"
+                    value={userInfo.name}
+                    onChange={handleInfoChange}
                     placeholder="John Doe"
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-cyan-600 focus:outline-none transition-all"
+                    className="w-full px-5 h-14 bg-slate-50 border-transparent rounded-2xl focus:bg-white focus:ring-2 focus:ring-cyan-600/20 focus:border-cyan-600 transition-all font-bold text-slate-900"
                   />
                 </div>
-                <div>
-                  <label className="text-xs font-bold text-gray-600 mb-1 block">
-                    Email
-                  </label>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Email</label>
                   <input
                     type="email"
+                    name="email"
+                    value={userInfo.email}
+                    onChange={handleInfoChange}
+                    onBlur={handleContactBlur}
                     placeholder="john@example.com"
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-cyan-600 focus:outline-none transition-all"
+                    className="w-full px-5 h-14 bg-slate-50 border-transparent rounded-2xl focus:bg-white focus:ring-2 focus:ring-cyan-600/20 focus:border-cyan-600 transition-all font-bold text-slate-900"
                   />
                 </div>
-                <div>
-                  <label className="text-xs font-bold text-gray-600 mb-1 block">
-                    Phone
-                  </label>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Phone</label>
                   <input
                     type="tel"
+                    name="phone"
+                    value={userInfo.phone}
+                    onChange={handleInfoChange}
+                    onBlur={handleContactBlur}
                     placeholder="98765 43210"
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-cyan-600 focus:outline-none transition-all"
+                    className="w-full px-5 h-14 bg-slate-50 border-transparent rounded-2xl focus:bg-white focus:ring-2 focus:ring-cyan-600/20 focus:border-cyan-600 transition-all font-bold text-slate-900"
                   />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Address</label>
+                  <input
+                    type="text"
+                    name="address"
+                    value={userInfo.address}
+                    onChange={handleInfoChange}
+                    placeholder="Street name, Building"
+                    className="w-full px-5 h-14 bg-slate-50 border-transparent rounded-2xl focus:bg-white focus:ring-2 focus:ring-cyan-600/20 focus:border-cyan-600 transition-all font-bold text-slate-900"
+                  />
+                </div>
+                <div className="grid grid-cols-3 gap-4 col-span-1 md:col-span-2">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">City</label>
+                    <input
+                      type="text"
+                      name="city"
+                      value={userInfo.city}
+                      onChange={handleInfoChange}
+                      placeholder="Mumbai"
+                      className="w-full px-5 h-14 bg-slate-50 border-transparent rounded-2xl focus:bg-white focus:ring-2 focus:ring-cyan-600/20 focus:border-cyan-600 transition-all font-bold text-slate-900"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">State</label>
+                    <input
+                      type="text"
+                      name="state"
+                      value={userInfo.state}
+                      onChange={handleInfoChange}
+                      placeholder="MH"
+                      className="w-full px-5 h-14 bg-slate-50 border-transparent rounded-2xl focus:bg-white focus:ring-2 focus:ring-cyan-600/20 focus:border-cyan-600 transition-all font-bold text-slate-900"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Zip Code</label>
+                    <input
+                      type="text"
+                      name="zip"
+                      value={userInfo.zip}
+                      onChange={handleInfoChange}
+                      placeholder="400001"
+                      className="w-full px-5 h-14 bg-slate-50 border-transparent rounded-2xl focus:bg-white focus:ring-2 focus:ring-cyan-600/20 focus:border-cyan-600 transition-all font-bold text-slate-900"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
 
             {/* Terms */}
-            <div className="flex items-start gap-3">
+            <div className="flex items-start gap-3 p-4">
               <input
                 type="checkbox"
                 id="terms"
@@ -609,13 +641,13 @@ const PaymentStep = ({ bookingData, setBookingData, prevStep }) => {
               </h3>
 
               {/* Selected Date */}
-              {bookingData.date && (
+              {bookingDate && (
                 <div className="flex items-center gap-3 p-3 bg-cyan-50 rounded-xl mb-4">
                   <FaCalendarAlt className="text-cyan-600" />
                   <div>
                     <p className="text-xs text-gray-500">Visit Date</p>
                     <p className="text-sm font-bold text-gray-900">
-                      {new Date(bookingData.date).toLocaleDateString("en-US", {
+                      {new Date(bookingDate).toLocaleDateString("en-US", {
                         day: "numeric",
                         month: "short",
                         year: "numeric",
@@ -626,83 +658,144 @@ const PaymentStep = ({ bookingData, setBookingData, prevStep }) => {
               )}
 
               {/* Ticket Summary */}
-              {bookingData.tickets?.length > 0 && (
+              {tickets?.length > 0 && (
                 <div className="mb-4">
                   <p className="text-xs font-bold text-gray-600 mb-2 flex items-center gap-1">
                     <FaTicketAlt className="text-cyan-600" />
                     Tickets
                   </p>
-                  {bookingData.tickets.map((ticket, idx) => (
-                    <div
-                      key={idx}
-                      className="flex justify-between items-center text-sm mb-2"
-                    >
-                      <span className="text-gray-600">
-                        {ticket.quantity || ticket.count}x{" "}
-                        {ticket.name || ticket.type}
-                      </span>
-                      <span className="font-bold text-gray-900">
-                        ₹{(ticket.quantity || ticket.count || 0) * 1000}
-                      </span>
-                    </div>
-                  ))}
+                  {renderedTickets}
                 </div>
               )}
 
               {/* Meal Summary */}
-              {bookingData.meals?.length > 0 && (
+              {meals?.length > 0 && (
                 <div className="mb-4">
                   <p className="text-xs font-bold text-gray-600 mb-2 flex items-center gap-1">
                     <FaUtensils className="text-cyan-600" />
                     Meals
                   </p>
-                  {bookingData.meals.map((meal, idx) => (
-                    <div
-                      key={idx}
-                      className="flex justify-between items-center text-sm mb-2"
-                    >
-                      <span className="text-gray-600">{meal.name}</span>
-                      <span className="font-bold text-gray-900">
-                        ₹{meal.count * 500}
-                      </span>
-                    </div>
-                  ))}
+                  {renderedMeals}
+                </div>
+              )}
+
+              {/* Add-on Summary */}
+              {bookingData.selectedAddOns?.length > 0 && (
+                <div className="mb-4">
+                  <p className="text-xs font-bold text-gray-600 mb-2 flex items-center gap-1">
+                    <FaGift className="text-cyan-600" />
+                    Enhancements
+                  </p>
+                  {renderedAddOns}
                 </div>
               )}
 
               {/* Price Breakdown */}
-              <div className="border-t border-gray-200 pt-4 space-y-2">
+              <div className="border-t border-gray-200 pt-4 space-y-3">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Subtotal</span>
-                  <span className="font-bold text-gray-900">
-                    ₹{totalAmount}
+                  <span className="text-gray-500 font-bold uppercase tracking-wider">Subtotal</span>
+                  <span className="font-black text-slate-900">
+                    ₹{pricing.subtotal.toFixed(2)}
                   </span>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">GST (18%)</span>
-                  <span className="font-bold text-gray-900">₹{gstAmount}</span>
+                {pricing.discount > 0 && (
+                  <div className="flex justify-between text-sm text-emerald-600">
+                    <span className="font-bold uppercase tracking-wider">Campaign Reduction</span>
+                    <span className="font-black">-₹{pricing.discount.toFixed(2)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between text-sm text-slate-400">
+                  <span className="font-bold uppercase tracking-wider">GST (18%)</span>
+                  <span className="font-black">₹{pricing.tax.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between text-lg font-bold pt-2 border-t border-gray-200">
-                  <span>Total</span>
-                  <span className="text-cyan-600">₹{finalAmount}</span>
+                <div className="flex justify-between text-xl font-bold pt-4 border-t border-slate-100">
+                  <span className="font-black text-slate-900">Total</span>
+                  <span className="text-3xl font-black text-cyan-600 tracking-tighter">₹{pricing.total.toFixed(2)}</span>
                 </div>
               </div>
 
+              {/* Savings Badge */}
+              {pricing.discount > 0 && (
+                <div className="bg-emerald-50 p-4 rounded-2xl flex items-center justify-between border border-emerald-100 mt-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-emerald-600 shadow-sm">
+                      <FaGift className="text-xl" />
+                    </div>
+                    <span className="text-[10px] font-black text-emerald-800 uppercase tracking-widest leading-tight">Applied Savings</span>
+                  </div>
+                  <span className="text-lg font-black text-emerald-600">₹{pricing.discount.toFixed(0)}</span>
+                </div>
+              )}
+
               {/* Pay Button */}
-              <Button
-                onClick={handlePayment}
-                disabled={processing || !acceptedTerms}
-                className="w-full !py-4 !rounded-2xl text-base font-bold bg-gradient-to-r from-cyan-600 to-blue-600 hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed mt-6"
-              >
-                {processing ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    Processing...
-                  </span>
-                ) : (
-                  <span>Pay ₹{finalAmount} Securely</span>
-                )}
-              </Button>
+              {/* Payment Method Selector */}
+              <div className="mb-4">
+                <p className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-3">Payment Method</p>
+                <div className="grid grid-cols-2 gap-3 mb-4">
+                  <button
+                    onClick={() => setPaymentMethod('razorpay')}
+                    className={`flex flex-col items-center gap-1 p-3 rounded-2xl border-2 transition-all ${paymentMethod === 'razorpay' ? 'border-cyan-500 bg-cyan-50' : 'border-gray-100 hover:border-gray-200'}`}
+                  >
+                    <FaCreditCard className={`text-xl ${paymentMethod === 'razorpay' ? 'text-cyan-600' : 'text-gray-400'}`} />
+                    <span className={`text-xs font-bold ${paymentMethod === 'razorpay' ? 'text-cyan-700' : 'text-gray-500'}`}>Razorpay</span>
+                  </button>
+                  {token ? (
+                    <button
+                      onClick={() => setPaymentMethod('wallet')}
+                      className={`flex flex-col items-center gap-1 p-3 rounded-2xl border-2 transition-all ${paymentMethod === 'wallet' ? 'border-blue-500 bg-blue-50' : 'border-gray-100 hover:border-gray-200'}`}
+                    >
+                      <FaWallet className={`text-xl ${paymentMethod === 'wallet' ? 'text-blue-600' : 'text-gray-400'}`} />
+                      <span className={`text-xs font-bold ${paymentMethod === 'wallet' ? 'text-blue-700' : 'text-gray-500'}`}>Wallet</span>
+                      <span className={`text-[10px] font-black ${walletBalance >= pricing.total ? 'text-green-600' : 'text-red-500'}`}>₹{walletBalance.toFixed(2)}</span>
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => dispatch(setAuthModal(true))}
+                      className="flex flex-col items-center justify-center gap-1 p-3 rounded-2xl border-2 border-dashed border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all group"
+                    >
+                      <FaLock className="text-xl text-gray-300 group-hover:text-blue-400" />
+                      <span className="text-[10px] font-bold text-gray-400 group-hover:text-blue-500 text-center leading-tight">Login to use Wallet</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {paymentMethod === 'razorpay' ? (
+                <Button
+                  onClick={handlePayment}
+                  disabled={processing || !acceptedTerms}
+                  className="w-full !py-4 !rounded-2xl text-sm font-black bg-gradient-to-r from-cyan-500 to-blue-600 disabled:opacity-50"
+                >
+                  {processing ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      Securing Portal...
+                    </span>
+                  ) : (
+                    <span>Initialize Payment • ₹{pricing.total.toFixed(2)}</span>
+                  )}
+                </Button>
+              ) : (
+                <Button
+                  onClick={handleWalletPayment}
+                  disabled={processing || !acceptedTerms}
+                  className="w-full !py-4 !rounded-2xl text-sm font-black bg-gradient-to-r from-blue-600 to-indigo-600 disabled:opacity-50"
+                >
+                  {processing ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      Processing...
+                    </span>
+                  ) : walletBalance < pricing.total ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <FaPlus className="text-xs" /> Top-up & Pay ₹{pricing.total.toFixed(2)}
+                    </span>
+                  ) : (
+                    <span className="flex items-center justify-center gap-2"><FaWallet /> Pay ₹{pricing.total.toFixed(2)} via Wallet</span>
+                  )}
+                </Button>
+              )}
+
 
               {/* Trust Badges */}
               <div className="mt-6 grid grid-cols-3 gap-2 text-center">

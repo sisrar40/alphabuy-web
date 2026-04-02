@@ -12,6 +12,7 @@ import {
   FaBars,
   FaUserCircle,
   FaBell,
+  FaWallet,
 } from "react-icons/fa";
 import { useDispatch } from "react-redux";
 import { logout } from "../features/auth/authSlice";
@@ -52,7 +53,16 @@ const AdminLayout = () => {
           icon: <FaTachometerAlt />,
         },
         { name: "Water Parks", path: "/admin/parks", icon: <FaMapMarkedAlt /> },
-        { name: "Meal Plans", path: "/admin/meals", icon: <FaUtensils /> },
+        {
+          name: "Meal Plans",
+          path: "/admin/meals",
+          icon: <FaUtensils />,
+        },
+        {
+          name: "Ticket Types",
+          path: "/admin/tickets",
+          icon: <FaTicketAlt />,
+        },
         {
           name: "Inventory",
           path: "/admin/dates",
@@ -68,15 +78,21 @@ const AdminLayout = () => {
         { name: "User Leads", path: "/admin/leads", icon: <FaHeadset /> },
       ],
     },
+    {
+      label: "SYSTEM MANAGEMENT",
+      items: [
+        { name: "Wallets", path: "/admin/wallets", icon: <FaWallet /> },
+        { name: "Users", path: "/admin/users", icon: <FaUserCircle /> },
+      ],
+    },
   ];
 
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
       {/* Sidebar */}
       <aside
-        className={`${
-          isSidebarOpen ? "w-72" : "w-20"
-        } bg-white border-r border-gray-200 transition-all duration-300 flex flex-col z-50 shadow-sm`}
+        className={`${isSidebarOpen ? "w-72" : "w-20"
+          } bg-white border-r border-gray-200 transition-all duration-300 flex flex-col z-50 shadow-sm`}
       >
         {/* Logo Area */}
         <div className="h-20 flex items-center justify-center px-4 border-b border-gray-100">
@@ -120,10 +136,9 @@ const AdminLayout = () => {
                       to={item.path}
                       className={`
                         flex items-center px-3 py-2.5 rounded-xl transition-all duration-200 text-sm
-                        ${
-                          isActive
-                            ? "bg-blue-600 text-white shadow-md"
-                            : "text-gray-600 hover:bg-gray-100"
+                        ${isActive
+                          ? "bg-blue-600 text-white shadow-md"
+                          : "text-gray-600 hover:bg-gray-100"
                         }
                         ${!isSidebarOpen && "justify-center"}
                       `}
@@ -209,9 +224,8 @@ const AdminLayout = () => {
                     {notifications.map((notification) => (
                       <div
                         key={notification.id}
-                        className={`p-3 border-b border-gray-50 hover:bg-gray-50 cursor-pointer ${
-                          !notification.read ? "bg-blue-50" : ""
-                        }`}
+                        className={`p-3 border-b border-gray-50 hover:bg-gray-50 cursor-pointer ${!notification.read ? "bg-blue-50" : ""
+                          }`}
                       >
                         <p className="text-sm text-gray-900">
                           {notification.message}

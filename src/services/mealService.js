@@ -1,20 +1,28 @@
 import api from './api';
 
 const mealService = {
-  getMeals: async () => {
-    // const response = await api.get('/meals');
-    // return response.data;
-    return [
-      { id: '1', mealName: 'Family Combo', parkId: '1', parkName: 'Adventure City', price: 499, description: 'Meal for 4 people' },
-      { id: '2', mealName: 'Single Snacker', parkId: '2', parkName: 'Aqua Splash', price: 199, description: 'Quick bite' },
-    ];
+  getMeals: async (parkId) => {
+    let url = '/meals';
+    if (parkId) {
+      url += `?parkId=${parkId}`;
+    }
+    const response = await api.get(url);
+    return response.data;
   },
 
   createMeal: async (mealData) => {
-    // const response = await api.post('/meals', mealData);
-    // return response.data;
-    console.log('API Service: Creating Meal', mealData);
-    return { ...mealData, id: Date.now().toString() };
+    const response = await api.post('/admin/meals', mealData);
+    return response.data;
+  },
+
+  updateMeal: async (mealData) => {
+    const response = await api.put(`/admin/meals/${mealData.id}`, mealData);
+    return response.data;
+  },
+
+  deleteMeal: async (mealId) => {
+    const response = await api.delete(`/admin/meals/${mealId}`);
+    return response.data;
   }
 };
 

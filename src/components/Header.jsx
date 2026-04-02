@@ -1,14 +1,8 @@
 import React, { useState, useEffect } from "react";
 import {
-  FaHeart,
-  FaShoppingCart,
   FaUser,
   FaSearch,
   FaTimes,
-  FaPhone,
-  FaWhatsapp,
-  FaGift,
-  FaCheck,
   FaWater,
   FaMapMarkerAlt,
   FaTicketAlt,
@@ -23,9 +17,14 @@ import {
   FaFire,
   FaChevronRight,
   FaCheckCircle,
+  FaWallet
 } from "react-icons/fa";
 import { GiSpeedBoat, GiWaterfall, GiPalmTree } from "react-icons/gi";
 import { useAppNavigation } from "../hooks/useAppNavigation";
+import { useDispatch, useSelector } from "react-redux";
+import { loginAdmin, registerUser, logout, setAuthModal } from "../features/auth/authSlice";
+import { resetBooking } from "../store/bookingSlice";
+import { useAlert } from "../context/AlertContext";
 import Button from "./ui/Button";
 
 const Header = () => {
@@ -33,18 +32,19 @@ const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [showSearchSuggestions, setShowSearchSuggestions] = useState(false);
-  const [showLoginModal, setShowLoginModal] = useState(false);
+  // Remove local showLoginModal state
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [otpSent, setOtpSent] = useState(false);
-  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
-  const [activeOtpIndex, setActiveOtpIndex] = useState(0);
-  const [selectedCountryCode, setSelectedCountryCode] = useState("+91");
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userName, setUserName] = useState("Guest User");
+  const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
+  const [password, setPassword] = useState("");
+  const [isRegistering, setIsRegistering] = useState(false);
+
+  const dispatch = useDispatch();
+  const { user, isAuthenticated, loading, showAuthModal } = useSelector((state) => state.auth);
 
   const { navigateTo } = useAppNavigation();
+  const { showAlert } = useAlert();
 
   const searchSuggestions = [
     { text: "Water Park Tickets", icon: <FaWater />, category: "Tickets" },
@@ -90,9 +90,16 @@ const Header = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  const handleLogout = () => {
+    dispatch(logout());
+    dispatch(resetBooking());
+    showAlert("Logged out successfully", "success");
+    navigateTo("/");
+  };
+
   // Lock body scroll when modal is open
   useEffect(() => {
-    if (showLoginModal || showMobileMenu || showNotifications) {
+    if (showAuthModal || showMobileMenu || showNotifications) {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "unset";
@@ -100,30 +107,47 @@ const Header = () => {
     return () => {
       document.body.style.overflow = "unset";
     };
-  }, [showLoginModal, showMobileMenu, showNotifications]);
+  }, [showAuthModal, showMobileMenu, showNotifications]);
 
   const clearSearch = () => {
     setSearchQuery("");
     setShowSearchSuggestions(false);
   };
 
-  const handleOtpChange = (e, index) => {
-    const value = e.target.value;
-    if (/^[0-9]$/.test(value)) {
-      const newOtp = [...otp];
-      newOtp[index] = value;
-      setOtp(newOtp);
-      if (index < 5) {
-        document.getElementById(`otp-${index + 1}`)?.focus();
+  const handleAuth = async (e) => {
+    e.preventDefault();
+    if (isRegistering) {
+      if (!name || !email || !password) {
+        showAlert("Please fill in all fields", "error");
+        return;
+      }
+      try {
+        const result = await dispatch(registerUser({ name, email, password, role: 'user' })).unwrap();
+        showAlert("Account created successfully!", "success");
+        dispatch(setAuthModal(false));
+        // Clear fields
+        setName("");
+        setEmail("");
+        setPassword("");
+      } catch (err) {
+        showAlert(err || "Registration failed", "error");
+      }
+    } else {
+      if (!email || !password) {
+        showAlert("Please enter email and password", "error");
+        return;
+      }
+      try {
+        await dispatch(loginAdmin({ email, password })).unwrap();
+        showAlert("Logged in successfully!", "success");
+        dispatch(setAuthModal(false));
+        // Clear fields
+        setEmail("");
+        setPassword("");
+      } catch (err) {
+        showAlert(err || "Login failed", "error");
       }
     }
-  };
-
-  const handleLogin = () => {
-    // Simulate login
-    setIsLoggedIn(true);
-    setUserName("Rahul Sharma");
-    setShowLoginModal(false);
   };
 
   const unreadCount = notifications.filter((n) => !n.read).length;
@@ -131,11 +155,10 @@ const Header = () => {
   return (
     <>
       <header
-        className={`sticky top-0 z-50 w-full transition-all duration-500 ${
-          isScrolled
-            ? "bg-white/95 backdrop-blur-md shadow-lg py-2"
-            : "bg-white/80 backdrop-blur-sm border-b border-blue-100/50 py-4"
-        }`}
+        className={`sticky top-0 z-50 w-full transition-all duration-500 ${isScrolled
+          ? "bg-white/95 backdrop-blur-md shadow-lg py-2"
+          : "bg-white/80 backdrop-blur-sm border-b border-blue-100/50 py-4"
+          }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between gap-4">
@@ -266,38 +289,43 @@ const Header = () => {
                 )}
               </button>
 
-              {/* Wishlist */}
-              <button className="relative p-2.5 sm:p-3 text-gray-600 hover:text-red-500 transition-all hover:scale-110 bg-gray-50 rounded-xl hidden sm:block">
-                <FaHeart className="text-lg sm:text-xl" />
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center border-2 border-white shadow-lg">
-                  3
-                </span>
-              </button>
-
-              {/* Cart */}
-              <button
-                onClick={() => navigateTo("/cart")}
-                className="relative p-2.5 sm:p-3 text-gray-600 hover:text-blue-600 transition-all hover:scale-110 bg-gray-50 rounded-xl"
-              >
-                <FaShoppingCart className="text-lg sm:text-xl" />
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-r from-blue-600 to-cyan-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center border-2 border-white shadow-lg">
-                  2
-                </span>
-              </button>
-
               {/* User Menu */}
-              {isLoggedIn ? (
-                <button className="hidden sm:flex items-center gap-3 pl-2 pr-5 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 text-white hover:shadow-lg transition-all group">
-                  <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center text-white group-hover:scale-110 transition-transform">
-                    <FaUser />
+              {isAuthenticated ? (
+                <div className="hidden sm:flex items-center gap-2">
+                  <button
+                    onClick={() => navigateTo("/wallet")}
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100 transition-all text-xs font-bold"
+                  >
+                    <FaWallet className="text-sm" /> Wallet
+                  </button>
+                  <div className="relative group">
+                    <button className="flex items-center gap-3 pl-2 pr-5 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 text-white hover:shadow-lg transition-all">
+                      <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center text-white group-hover:scale-110 transition-transform">
+                        <FaUser />
+                      </div>
+                      <span className="text-xs font-bold whitespace-nowrap">
+                        {user?.name?.split(" ")[0] || "Profile"}
+                      </span>
+                    </button>
+                    <div className="absolute right-0 top-full w-48 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden hidden group-hover:block animate-in fade-in slide-in-from-top-2 duration-200">
+                      <button
+                        onClick={() => navigateTo("/profile")}
+                        className="w-full text-left px-5 py-3 hover:bg-gray-50 text-sm font-medium text-gray-700 flex items-center gap-2"
+                      >
+                        <FaUser className="text-blue-500" /> My Profile
+                      </button>
+                      <button
+                        onClick={handleLogout}
+                        className="w-full text-left px-5 py-3 hover:bg-red-50 text-sm font-medium text-red-600 border-t border-gray-50 flex items-center gap-2"
+                      >
+                        Logout
+                      </button>
+                    </div>
                   </div>
-                  <span className="text-xs font-bold">
-                    {userName.split(" ")[0]}
-                  </span>
-                </button>
+                </div>
               ) : (
                 <button
-                  onClick={() => setShowLoginModal(true)}
+                  onClick={() => dispatch(setAuthModal(true))}
                   className="hidden sm:flex items-center gap-3 pl-2 pr-5 py-2 rounded-xl bg-gray-900 text-white hover:bg-gray-800 shadow-xl shadow-gray-900/10 transition-all group"
                 >
                   <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-white group-hover:scale-110 transition-transform">
@@ -384,12 +412,12 @@ const Header = () => {
               ))}
             </div>
 
-            {!isLoggedIn && (
+            {!isAuthenticated && (
               <div className="absolute bottom-6 left-6 right-6">
                 <button
                   onClick={() => {
                     setShowMobileMenu(false);
-                    setShowLoginModal(true);
+                    dispatch(setAuthModal(true));
                   }}
                   className="w-full py-4 bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-bold rounded-xl flex items-center justify-center gap-3"
                 >
@@ -423,9 +451,8 @@ const Header = () => {
               {notifications.map((notification) => (
                 <div
                   key={notification.id}
-                  className={`p-4 border-b border-gray-50 hover:bg-gray-50 cursor-pointer transition-colors ${
-                    !notification.read ? "bg-blue-50/50" : ""
-                  }`}
+                  className={`p-4 border-b border-gray-50 hover:bg-gray-50 cursor-pointer transition-colors ${!notification.read ? "bg-blue-50/50" : ""
+                    }`}
                 >
                   <div className="flex gap-3">
                     <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
@@ -456,16 +483,16 @@ const Header = () => {
       )}
 
       {/* Login Modal */}
-      {showLoginModal && (
+      {showAuthModal && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <div
             className="absolute inset-0"
-            onClick={() => setShowLoginModal(false)}
+            onClick={() => dispatch(setAuthModal(false))}
           ></div>
 
           <div className="relative bg-white rounded-3xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-300">
             <button
-              onClick={() => setShowLoginModal(false)}
+              onClick={() => dispatch(setAuthModal(false))}
               className="absolute top-4 right-4 z-10 w-10 h-10 bg-gray-100 hover:bg-gray-200 rounded-xl flex items-center justify-center text-gray-600 hover:text-gray-900 transition-colors"
             >
               <FaTimes />
@@ -485,166 +512,80 @@ const Header = () => {
                 </p>
               </div>
 
-              {!otpSent ? (
-                <div className="space-y-6">
-                  {/* Phone Input */}
-                  <div className="space-y-2">
+              <form onSubmit={handleAuth} className="space-y-6">
+                {isRegistering && (
+                  <div className="space-y-2 animate-in slide-in-from-top-2 duration-300">
                     <label className="text-xs font-bold text-gray-600 uppercase tracking-wider ml-1">
-                      Mobile Number
+                      Full Name
                     </label>
-                    <div className="flex gap-2">
-                      <select
-                        value={selectedCountryCode}
-                        onChange={(e) => setSelectedCountryCode(e.target.value)}
-                        className="w-24 px-3 py-4 bg-gray-50 border-2 border-gray-100 rounded-xl font-bold text-gray-900 focus:border-blue-400 focus:outline-none transition-all"
-                      >
-                        {countryCodes.map((code) => (
-                          <option key={code} value={code}>
-                            {code}
-                          </option>
-                        ))}
-                      </select>
-                      <div className="flex-1 relative">
-                        <input
-                          type="tel"
-                          value={phoneNumber}
-                          onChange={(e) =>
-                            setPhoneNumber(
-                              e.target.value.replace(/\D/g, "").slice(0, 10),
-                            )
-                          }
-                          placeholder="98765 43210"
-                          className="w-full px-4 py-4 bg-gray-50 border-2 border-gray-100 rounded-xl font-bold text-gray-900 placeholder-gray-400 focus:border-blue-400 focus:outline-none transition-all"
-                          autoFocus
-                        />
-                        {phoneNumber.length === 10 && (
-                          <div className="absolute right-4 top-1/2 -translate-y-1/2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white">
-                            <FaCheck className="text-xs" />
-                          </div>
-                        )}
-                      </div>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder="John Doe"
+                        className="w-full px-4 py-4 bg-gray-50 border-2 border-gray-100 rounded-xl font-bold text-gray-900 placeholder-gray-400 focus:border-blue-400 focus:outline-none transition-all"
+                        required
+                      />
                     </div>
                   </div>
-
-                  {/* Benefits Card */}
-                  <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl p-4 flex items-start gap-3 border border-blue-100">
-                    <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center text-blue-600 shadow-sm shrink-0">
-                      <FaGift />
-                    </div>
-                    <div>
-                      <p className="text-sm font-bold text-gray-900">
-                        Exclusive Member Benefits
-                      </p>
-                      <p className="text-xs text-gray-600 mt-1">
-                        Get 2% cashback on every booking & early access to
-                        offers
-                      </p>
-                    </div>
+                )}
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-gray-600 uppercase tracking-wider ml-1">
+                    Email Address
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="hello@example.com"
+                      className="w-full px-4 py-4 bg-gray-50 border-2 border-gray-100 rounded-xl font-bold text-gray-900 placeholder-gray-400 focus:border-blue-400 focus:outline-none transition-all"
+                      required
+                    />
                   </div>
-
-                  {/* Send OTP Button */}
-                  <Button
-                    onClick={() => setOtpSent(true)}
-                    disabled={phoneNumber.length !== 10}
-                    className="w-full !py-4 !rounded-xl text-base font-bold bg-gradient-to-r from-blue-600 to-cyan-500"
-                  >
-                    Send OTP
-                  </Button>
-
-                  {/* Help Buttons */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <button className="flex items-center justify-center gap-2 py-3 border-2 border-gray-100 rounded-xl text-gray-600 text-xs font-bold hover:bg-gray-50 hover:border-gray-200 transition-all">
-                      <FaPhone className="text-blue-500" />
-                      <span>Help</span>
-                    </button>
-                    <button className="flex items-center justify-center gap-2 py-3 border-2 border-gray-100 rounded-xl text-gray-600 text-xs font-bold hover:bg-emerald-50 hover:border-emerald-200 transition-all">
-                      <FaWhatsapp className="text-emerald-500 text-base" />
-                      <span>WhatsApp</span>
-                    </button>
-                  </div>
-
-                  {/* Terms */}
-                  <p className="text-center text-xs text-gray-400">
-                    By continuing, you agree to our{" "}
-                    <a
-                      href="#"
-                      className="text-blue-600 font-bold hover:underline"
-                    >
-                      Terms
-                    </a>{" "}
-                    &{" "}
-                    <a
-                      href="#"
-                      className="text-blue-600 font-bold hover:underline"
-                    >
-                      Privacy Policy
-                    </a>
-                  </p>
                 </div>
-              ) : (
-                <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-300">
-                  {/* OTP Header */}
-                  <div className="text-center">
-                    <p className="text-sm text-gray-600 mb-2">
-                      Enter the 6-digit code sent to
-                    </p>
-                    <p className="text-xl font-bold text-gray-900 mb-6">
-                      {selectedCountryCode} {phoneNumber}
-                    </p>
 
-                    {/* OTP Inputs */}
-                    <div className="flex justify-center gap-2 mb-6">
-                      {otp.map((digit, index) => (
-                        <input
-                          key={index}
-                          id={`otp-${index}`}
-                          type="text"
-                          value={digit}
-                          onChange={(e) => handleOtpChange(e, index)}
-                          onKeyDown={(e) => {
-                            if (e.key === "Backspace" && !digit && index > 0) {
-                              document
-                                .getElementById(`otp-${index - 1}`)
-                                ?.focus();
-                            }
-                          }}
-                          maxLength={1}
-                          className="w-12 h-14 text-center text-2xl font-bold bg-gray-50 border-2 border-gray-200 focus:border-blue-500 focus:bg-white rounded-xl outline-none transition-all"
-                          autoFocus={index === 0}
-                        />
-                      ))}
-                    </div>
-
-                    {/* Resend */}
-                    <p className="text-sm text-gray-500 mb-6">
-                      Didn't receive code?{" "}
-                      <button className="text-blue-600 font-bold hover:underline">
-                        Resend
-                      </button>
-                    </p>
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-gray-600 uppercase tracking-wider ml-1">
+                    Password
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="w-full px-4 py-4 bg-gray-50 border-2 border-gray-100 rounded-xl font-bold text-gray-900 placeholder-gray-400 focus:border-blue-400 focus:outline-none transition-all"
+                      required
+                    />
                   </div>
-
-                  {/* Verify Button */}
-                  <Button
-                    className="w-full !py-4 !rounded-xl text-base font-bold bg-gradient-to-r from-blue-600 to-cyan-500"
-                    onClick={handleLogin}
-                    disabled={otp.some((d) => !d)}
-                  >
-                    Verify & Sign In
-                  </Button>
-
-                  {/* Change Number */}
-                  <button
-                    onClick={() => {
-                      setOtpSent(false);
-                      setOtp(["", "", "", "", "", ""]);
-                    }}
-                    className="w-full text-center text-sm font-bold text-gray-500 hover:text-blue-600 transition-colors"
-                  >
-                    ← Use different number
-                  </button>
                 </div>
-              )}
+
+                <Button
+                  type="submit"
+                  disabled={loading || !email || !password || (isRegistering && !name)}
+                  className="w-full flex justify-center items-center !py-4 !rounded-xl text-base font-bold bg-gradient-to-r from-blue-600 to-cyan-500"
+                >
+                  {loading ? (
+                    <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                  ) : isRegistering ? (
+                    "Create Account"
+                  ) : (
+                    "Sign In"
+                  )}
+                </Button>
+
+                <button
+                  type="button"
+                  onClick={() => setIsRegistering(!isRegistering)}
+                  className="w-full text-center text-sm font-bold text-gray-500 hover:text-blue-600 transition-colors"
+                >
+                  {isRegistering
+                    ? "Already have an account? Sign In"
+                    : "Don't have an account? Register"}
+                </button>
+              </form>
 
               {/* Social Login */}
               <div className="mt-6 pt-6 border-t border-gray-100">

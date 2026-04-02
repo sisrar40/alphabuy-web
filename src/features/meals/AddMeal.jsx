@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
-import { addMeal } from "./mealSlice";
+import { useNavigate, useParams } from "react-router-dom";
+import { addMeal, updateMeal } from "./mealSlice";
 import { fetchParks } from "../parks/parkSlice";
 import PageHeader from "../../components/ui/PageHeader";
 import Button from "../../components/ui/Button";
+import { useAlert } from "../../context/AlertContext";
 import Input from "../../components/ui/Input";
 import Select from "../../components/ui/Select";
 import {
@@ -25,26 +26,51 @@ const AddMeal = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
-  const { items: parks, loading: parksLoading } = useSelector(
+  const { items: parksItems, loading: parksLoading } = useSelector(
     (state) => state.parks,
   );
+  const { items: mealsItems } = useSelector((state) => state.meals);
+  const parks = parksItems || [];
+  const { id } = useParams();
+  const isEditMode = Boolean(id);
 
   const [formData, setFormData] = useState({
     mealName: "",
-    parkId: "",
+    parkIds: [],
     description: "",
     price: "",
     type: "veg",
     calories: "",
     preparationTime: "",
     popular: false,
+    dietaryType: "none",
   });
+  const { showAlert } = useAlert();
 
   useEffect(() => {
-    if (parks.length === 0) {
+    if ((parks?.length || 0) === 0) {
       dispatch(fetchParks());
     }
-  }, [dispatch, parks.length]);
+  }, [dispatch, parks?.length]);
+
+  useEffect(() => {
+    if (isEditMode && mealsItems?.length > 0) {
+      const existingMeal = mealsItems.find((m) => String(m.id) === String(id));
+      if (existingMeal) {
+        setFormData({
+          mealName: existingMeal.mealName || existingMeal.name || "",
+          parkIds: existingMeal.parkIds || existingMeal.park_ids || [],
+          description: existingMeal.description || "",
+          price: existingMeal.price || "",
+          type: existingMeal.type || "veg",
+          calories: existingMeal.calories || "",
+          preparationTime: existingMeal.preparationTime || existingMeal.timing || "",
+          popular: existingMeal.popular || false,
+          dietaryType: existingMeal.dietaryType || "none",
+        });
+      }
+    }
+  }, [id, isEditMode, mealsItems]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -58,10 +84,19 @@ const AddMeal = () => {
     }
   };
 
+  const handleParkToggle = (parkId) => {
+    const newParkIds = formData.parkIds.includes(parkId)
+      ? formData.parkIds.filter(id => id !== parkId)
+      : [...formData.parkIds, parkId];
+    
+    setFormData({ ...formData, parkIds: newParkIds });
+    if (errors.parkIds) setErrors({ ...errors, parkIds: "" });
+  };
+
   const validateForm = () => {
     const newErrors = {};
     if (!formData.mealName.trim()) newErrors.mealName = "Meal name is required";
-    if (!formData.parkId) newErrors.parkId = "Please select a park";
+    if (formData.parkIds.length === 0) newErrors.parkIds = "Please select at least one park";
     if (!formData.description.trim())
       newErrors.description = "Description is required";
     if (!formData.price) newErrors.price = "Price is required";
@@ -76,14 +111,22 @@ const AddMeal = () => {
     e.preventDefault();
     if (!validateForm()) return;
 
-    if (!formData.parkId) {
-      alert("Please select a park first");
-      return;
-    }
-
     setLoading(true);
     try {
-      await dispatch(addMeal(formData)).unwrap();
+      // Parse numeric fields before sending to API
+      const processedData = {
+        ...formData,
+        price: parseFloat(formData.price),
+        preparationTime: formData.preparationTime ? parseInt(formData.preparationTime, 10) : 0,
+        park_ids: formData.parkIds // Use snake_case for backend
+      };
+
+      if (isEditMode) {
+        await dispatch(updateMeal({ ...processedData, id })).unwrap();
+        showAlert("Meal updated successfully", "success");
+      } else {
+        await dispatch(addMeal(processedData)).unwrap();
+      }
       navigate("/admin/meals");
     } catch (error) {
       console.error("Failed to save meal:", error);
@@ -95,7 +138,7 @@ const AddMeal = () => {
 
   const parkOptions = [
     { label: "Select a Park", value: "" },
-    ...parks.map((p) => ({ label: p.parkName, value: p.id })),
+    ...(parks || []).map((p) => ({ label: p.parkName || p.name, value: p.id })),
   ];
 
   const mealTypes = [
@@ -118,10 +161,10 @@ const AddMeal = () => {
         </button>
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
-            Add New Meal Plan
+            {isEditMode ? "Edit Meal Plan" : "Add New Meal Plan"}
           </h1>
           <p className="text-sm text-gray-500 mt-1">
-            Create a new meal option for water parks
+            {isEditMode ? "Update meal option details" : "Create a new meal option for water parks"}
           </p>
         </div>
       </div>
@@ -156,20 +199,25 @@ const AddMeal = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Park <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Associate with Parks <span className="text-red-500">*</span>
                 </label>
-                <Select
-                  name="parkId"
-                  value={formData.parkId}
-                  onChange={handleChange}
-                  options={parkOptions}
-                  disabled={parksLoading}
-                  className={errors.parkId ? "border-red-500" : ""}
-                />
-                {errors.parkId && (
+                <div className="grid grid-cols-2 gap-3 max-h-48 overflow-y-auto p-4 border border-gray-200 rounded-lg bg-gray-50">
+                  {parks.map((p) => (
+                    <label key={p.id} className="flex items-center gap-3 p-2 hover:bg-white rounded-lg cursor-pointer transition-all border border-transparent hover:border-gray-100">
+                      <input
+                        type="checkbox"
+                        checked={formData.parkIds.includes(p.id)}
+                        onChange={() => handleParkToggle(p.id)}
+                        className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                      />
+                      <span className="text-sm font-medium text-gray-700">{p.parkName || p.name}</span>
+                    </label>
+                  ))}
+                </div>
+                {errors.parkIds && (
                   <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
-                    <FaTimesCircle /> {errors.parkId}
+                    <FaTimesCircle /> {errors.parkIds}
                   </p>
                 )}
                 {parksLoading && (
@@ -189,9 +237,8 @@ const AddMeal = () => {
               value={formData.description}
               onChange={handleChange}
               rows="4"
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all ${
-                errors.description ? "border-red-500" : "border-gray-300"
-              }`}
+              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all ${errors.description ? "border-red-500" : "border-gray-300"
+                }`}
               placeholder="Provide a detailed description of the meal, including ingredients, portions, and any special features..."
             />
             {errors.description && (

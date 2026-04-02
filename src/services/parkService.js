@@ -2,29 +2,28 @@ import api from './api';
 
 const parkService = {
   getParks: async () => {
-    // const response = await api.get('/parks');
-    // return response.data;
-    
-    // Placeholder response
-    return [
-      { id: '1', parkName: 'Adventure City Theme Park', location: 'Downtown', price: 1199, description: 'The best park in the city' },
-      { id: '2', parkName: 'Aqua Splash Water Park', location: 'Westside', price: 899, description: 'Beat the heat here' },
-    ];
+    const response = await api.get('/parks');
+    return response.data;
   },
 
   createPark: async (parkData) => {
-    // const response = await api.post('/parks', parkData);
-    // return response.data;
-    
-    // Placeholder
-    console.log('API Service: Creating Park', parkData);
-    return { ...parkData, id: Date.now().toString() };
+    const response = await api.post('/admin/parks', parkData);
+    return response.data;
   },
 
   deletePark: async (id) => {
-    // await api.delete(`/parks/${id}`);
-    console.log('API Service: Deleting Park', id);
+    await api.delete(`/admin/parks/${id}`);
     return true;
+  },
+
+  getParkById: async (id) => {
+    const response = await api.get(`/parks/${id}`);
+    return response.data;
+  },
+
+  updatePark: async (id, parkData) => {
+    const response = await api.put(`/admin/parks/${id}`, parkData);
+    return response.data;
   }
 };
 

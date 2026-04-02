@@ -4,19 +4,30 @@ import authService from '../../services/authService';
 export const loginAdmin = createAsyncThunk('auth/login', async ({ email, password }, { rejectWithValue }) => {
   try {
     const data = await authService.login(email, password);
-    localStorage.setItem('adminToken', data.token);
     return data;
   } catch (error) {
-    return rejectWithValue(error.message);
+    const message = error.response?.data?.error || error.message || 'Login failed';
+    return rejectWithValue(message);
+  }
+});
+
+export const registerUser = createAsyncThunk('auth/register', async (userData, { rejectWithValue }) => {
+  try {
+    const data = await authService.register(userData);
+    return data;
+  } catch (error) {
+    const message = error.response?.data?.error || error.message || 'Registration failed';
+    return rejectWithValue(message);
   }
 });
 
 const initialState = {
-  user: null,
-  token: localStorage.getItem('adminToken') || null,
-  isAuthenticated: !!localStorage.getItem('adminToken'),
+  user: JSON.parse(localStorage.getItem('user')) || null,
+  token: localStorage.getItem('token') || localStorage.getItem('adminToken') || null,
+  isAuthenticated: !!(localStorage.getItem('token') || localStorage.getItem('adminToken')),
   loading: false,
   error: null,
+  showAuthModal: false,
 };
 
 const authSlice = createSlice({
@@ -28,7 +39,14 @@ const authSlice = createSlice({
       state.user = null;
       state.token = null;
       state.isAuthenticated = false;
+      state.error = null;
     },
+    clearError: (state) => {
+      state.error = null;
+    },
+    setAuthModal: (state, action) => {
+      state.showAuthModal = action.payload;
+    }
   },
   extraReducers: (builder) => {
     builder
@@ -45,9 +63,25 @@ const authSlice = createSlice({
       .addCase(loginAdmin.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+      .addCase(registerUser.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(registerUser.fulfilled, (state, action) => {
+        state.loading = false;
+        if (action.payload.token) {
+          state.isAuthenticated = true;
+          state.token = action.payload.token;
+          state.user = action.payload.user;
+        }
+      })
+      .addCase(registerUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       });
   },
 });
 
-export const { logout } = authSlice.actions;
+export const { logout, clearError, setAuthModal } = authSlice.actions;
 export default authSlice.reducer;

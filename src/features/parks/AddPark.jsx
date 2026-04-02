@@ -1,7 +1,7 @@
-import React, { useState } from "react";
-import { useDispatch } from "react-redux";
-import { useNavigate } from "react-router-dom";
-import { addPark } from "./parkSlice";
+import React, { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate, useParams } from "react-router-dom";
+import { addPark, updatePark, fetchParkById } from "./parkSlice";
 import PageHeader from "../../components/ui/PageHeader";
 import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
@@ -20,6 +20,9 @@ import {
 const AddPark = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { id } = useParams();
+  const isEditing = !!id;
+
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [formData, setFormData] = useState({
@@ -33,6 +36,30 @@ const AddPark = () => {
     closingTime: "20:00",
     status: "active",
   });
+
+  const { selectedItem } = useSelector((state) => state.parks);
+
+  useEffect(() => {
+    if (isEditing) {
+      dispatch(fetchParkById(id));
+    }
+  }, [id, dispatch, isEditing]);
+
+  useEffect(() => {
+    if (isEditing && selectedItem) {
+      setFormData({
+        parkName: selectedItem.name || "",
+        location: selectedItem.location || "",
+        description: selectedItem.description || "",
+        price: selectedItem.price || "",
+        image: selectedItem.image || "",
+        capacity: selectedItem.capacity || "",
+        openingTime: selectedItem.opening_time || "10:00",
+        closingTime: selectedItem.closing_time || "20:00",
+        status: selectedItem.status || "active",
+      });
+    }
+  }, [selectedItem, isEditing]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -63,7 +90,24 @@ const AddPark = () => {
 
     setLoading(true);
     try {
-      await dispatch(addPark(formData)).unwrap();
+      const payload = {
+        name: formData.parkName,
+        location: formData.location,
+        description: formData.description,
+        price: parseFloat(formData.price),
+        image: formData.image,
+        capacity: formData.capacity ? parseInt(formData.capacity) : 0,
+        opening_time: formData.openingTime,
+        closing_time: formData.closingTime,
+        status: formData.status,
+      };
+
+      if (isEditing) {
+        payload.id = id;
+        await dispatch(updatePark(payload)).unwrap();
+      } else {
+        await dispatch(addPark(payload)).unwrap();
+      }
       navigate("/admin/parks");
     } catch (error) {
       console.error("Failed to save park:", error);
@@ -85,10 +129,10 @@ const AddPark = () => {
         </button>
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
-            Add New Water Park
+            {isEditing ? "Edit Water Park" : "Add New Water Park"}
           </h1>
           <p className="text-sm text-gray-500 mt-1">
-            Create a new water park listing
+            {isEditing ? "Update existing park details" : "Create a new water park listing"}
           </p>
         </div>
       </div>
@@ -153,9 +197,8 @@ const AddPark = () => {
               value={formData.description}
               onChange={handleChange}
               rows="4"
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all ${
-                errors.description ? "border-red-500" : "border-gray-300"
-              }`}
+              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all ${errors.description ? "border-red-500" : "border-gray-300"
+                }`}
               placeholder="Provide a detailed description of the water park, including attractions, amenities, and unique features..."
             />
             {errors.description && (
@@ -295,7 +338,7 @@ const AddPark = () => {
               ) : (
                 <>
                   <FaCheckCircle />
-                  Save Park
+                  {isEditing ? "Update Park" : "Save Park"}
                 </>
               )}
             </button>
